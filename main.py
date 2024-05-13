@@ -34,7 +34,7 @@ class Engine:
         self.time = 0
         self.dt = 0
         # Project handler
-        self.project_handler = ProjectHandler(self, load_directory='saves/SampleProject')
+        self.project_handler = ProjectHandler(self, load_project='SampleProject')
 
     def update(self) -> None:
         """
@@ -55,6 +55,11 @@ class Engine:
             if event.type == pg.QUIT:
                 # Ends the main loop
                 self.run = False
+            if event.type == pg.VIDEORESIZE:
+                # Updates the viewport
+                self.win_size = (event.w, event.h)
+                self.ctx.viewport = (0, 0, event.w, event.h)
+                self.project_handler.current_project.current_scene.use()
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
                     # Unlock mouse

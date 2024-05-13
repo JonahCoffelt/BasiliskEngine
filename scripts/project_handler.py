@@ -8,7 +8,7 @@ class ProjectHandler:
     """
     Stores, loads, and saves projects
     """
-    def __init__(self, engine, project_name: str='Project', load_directory: str='empty') -> None:
+    def __init__(self, engine, project_name: str='Project', load_project: str='empty') -> None:
         """
         Initializes the specified projects
         """
@@ -18,20 +18,20 @@ class ProjectHandler:
         self.projects = {}
 
         # Loads specified projects
-        match load_directory:
+        match load_project:
             case 'empty':
                 # Creates a blank project and saves it
                 self.projects[project_name] = BlankProject(self.engine)
                 self.current_project = self.projects[project_name]
             case _:
                 # Load project save
-                self.load_project(project_name, load_directory)
+                self.load_project(project_name, load_project)
                 self.current_project = self.projects[project_name]
 
-    def update(self):
+    def update(self) -> None:
         self.current_project.update()
 
-    def render(self):
+    def render(self) -> None:
         self.current_project.render()
 
     def add_project(self, name: str='Project') -> None:
@@ -59,7 +59,7 @@ class ProjectHandler:
             project_key = f'{name} ({count})'
             count += 1
         
-        self.projects[name] = LoadProject(self.engine, directory)
+        self.projects[name] = LoadProject(self.engine, 'saves/' + directory)
 
     def set_current_project(self, project_key: str='Project') -> None:
         """
@@ -72,7 +72,7 @@ class ProjectHandler:
         self.current_project = self.projects[project_key]
         self.current_project.current_scene.use()
 
-    def release(self):
+    def release(self) -> None:
         [project.release() for project in self.projects.values()]
 
 class Project:
@@ -89,21 +89,21 @@ class Project:
         self.vao_handler = VAOHandler(self)
         self.prefab_handler = PrefabHandler(self)
 
-    def update(self):
+    def update(self) -> None:
         """
         Updates the current scene        
         """
 
         self.current_scene.update()
 
-    def render(self):
+    def render(self) -> None:
         """
         Renders the current scene        
         """
 
         self.current_scene.render()
 
-    def set_scene(self, scene: str):
+    def set_scene(self, scene: str) -> None:
         """
         Sets the scene being updated and rendered
         """
@@ -111,7 +111,7 @@ class Project:
         self.scenes[scene].use()
         self.current_scene = self.scenes[scene]
 
-    def release(self):
+    def release(self) -> None:
         """
         Releases all scenes in project
         """
@@ -137,4 +137,3 @@ class LoadProject(Project):
         super().__init__(engine)
         # Loads the project file
         load_project(self, directory)
-        #load_project(self, 'saves/SampleProject')

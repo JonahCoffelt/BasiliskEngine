@@ -30,6 +30,7 @@ def load_project(project, directory: str):
             if len(line.split(' ')) == 3: prefabs.append(line.split(' '))
             i += 1
 
+
     for prefab in prefabs:
         project.prefab_handler.add_prefab(prefab[0], int(prefab[1]), prefab[2])
     # Loads all the scenes to the project class

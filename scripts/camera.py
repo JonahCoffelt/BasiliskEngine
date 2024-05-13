@@ -84,6 +84,14 @@ class Camera:
         if keys[pg.K_LSHIFT]:
             self.position -= self.UP * velocity
 
+    def use(self):
+        # Updated aspect ratio of the screen
+        self.aspect_ratio = self.engine.win_size[0] / self.engine.win_size[1]
+        # View matrix
+        self.m_view = self.get_view_matrix()
+        # Projection matrix
+        self.m_proj = self.get_projection_matrix()
+
     def get_view_matrix(self) -> glm.mat4x4:
         return glm.lookAt(self.position, self.position + self.forward, self.up)
 

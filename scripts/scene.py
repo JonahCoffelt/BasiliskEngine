@@ -26,6 +26,7 @@ class Scene:
         """
 
         self.vao_handler.shader_handler.set_camera(self.camera)
+        self.camera.use()
         self.vao_handler.shader_handler.write_all_uniforms()
         self.object_handler.use()
 
