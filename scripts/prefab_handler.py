@@ -32,13 +32,12 @@ class Prefab:
         self.max_objects = max_objects
 
         # Store buffer and vao for writing and rendering
+        self.vao_name = vao
         self.vao = self.project.vao_handler.vaos[vao]
         self.instance_buffer = self.project.vao_handler.instance_buffers[vao]
 
         # Dictionary to store instance data
         self.instance_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(self.max_objects)], dtype='f4')
-        # Availible indices per object prefab. Used for writting to buffer
-        self.instance_indices = [i for i in range(0, self.max_objects)]
 
     def write(self) -> None:
         """

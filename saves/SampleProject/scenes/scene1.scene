@@ -1,0 +1,8 @@
+camera
+    0 0 0 0 0 0
+
+objects
+    cube 0 0 0 1 1 1 0 0 0
+    cube 2 2 2 1 1 1 0 0 0
+    cube 4 4 4 1 1 1 0 0 0
+    cube 6 6 6 1 1 1 0 0 0

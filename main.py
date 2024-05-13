@@ -34,7 +34,7 @@ class Engine:
         self.time = 0
         self.dt = 0
         # Project handler
-        self.project_handler = ProjectHandler(self)
+        self.project_handler = ProjectHandler(self, load_directory='saves/SampleProject')
 
     def update(self) -> None:
         """
@@ -60,6 +60,12 @@ class Engine:
                     # Unlock mouse
                     pg.event.set_grab(False)
                     pg.mouse.set_visible(True)
+                if event.key == pg.K_1:
+                    scenes = list(self.project_handler.current_project.scenes.keys())
+                    self.project_handler.current_project.set_scene(scenes[0])
+                if event.key == pg.K_2:
+                    scenes = list(self.project_handler.current_project.scenes.keys())
+                    self.project_handler.current_project.set_scene(scenes[1])
 
         # Update Project
         self.project_handler.update()

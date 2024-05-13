@@ -14,6 +14,8 @@ class ObjectHandler:
 
         # Prefabs dictionary
         self.prefabs = self.scene.project.prefab_handler.prefabs
+        # Availible indices per object prefab. Used for writting to buffer
+        self.instance_indices = {prefab : [i for i in range(0, self.prefabs[prefab].max_objects)] for prefab in self.prefabs}
 
         # Objects list
         self.objects = []
@@ -22,17 +24,23 @@ class ObjectHandler:
         for prefab in self.prefabs.values():
             prefab.render()
 
+    def use(self):
+        for prefab in self.prefabs.values():
+            prefab.instance_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(prefab.max_objects)], dtype='f4')
+        for object in self.objects:
+            self.prefabs[object.prefab].instance_data[object.index] = object.data
+
     def add_object(self, prefab, position: tuple=(0, 0, 0), scale: tuple=(1, 1, 1), rotation: tuple=(0, 0, 0)) -> None:
         """
         Adds an object to the scene
         Must have a prefab, may be given a position, scale or rotation
         """
 
-        if not len(self.prefabs[prefab].instance_indices):
-            raise IndexError(f"ObjectHandler.add_object: Object prefab '{prefab}' is full. The limit is currently set to {self.prefabs[prefab].max_objects ** 3} objects per prefab")
+        if not len(self.instance_indices[prefab]):
+            raise IndexError(f"ObjectHandler.add_object: Object prefab '{prefab}' is full. The limit is currently set to {self.prefabs[prefab].max_objects} objects per prefab")
 
         # Gets the first availible object index
-        index = self.prefabs[prefab].instance_indices.pop(0)
+        index = self.instance_indices[prefab].pop(0)
         # Adds a new object of the object to the objects list (IDK how else to phrase that lmao)
         self.objects.append(Object(prefab, index, position, scale, rotation))
         # Updates object's data in the instance data array
@@ -51,7 +59,7 @@ class ObjectHandler:
         index = object.index
 
         # Frees up the index for future objects to use
-        self.prefabs[prefab].instance_indices.append(object.index)
+        self.instance_indices[prefab].append(object.index)
         # Sets the instance data to empty
         self.prefabs[prefab].instance_data[index] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         # Removes object from handler's object list

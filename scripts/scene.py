@@ -1,5 +1,4 @@
 from scripts.camera import Camera
-from scripts.vao_handler import VAOHandler
 from scripts.object_handler import ObjectHandler
 
 
@@ -9,13 +8,10 @@ class Scene:
         Contains all data for scene
         """
 
-        # Stores the engine and project
+        # Stores the engine, project, and ctx
         self.engine = engine
         self.project = project
-        # Stores the ctx
         self.ctx = self.engine.ctx
-
-        self.time = 0
 
         # Makes a free cam
         self.camera = Camera(self.engine)
@@ -24,17 +20,14 @@ class Scene:
         self.vao_handler = self.project.vao_handler
         self.object_handler = ObjectHandler(self)
         
-        # Used to incorperate the scene into the render pipline. Allows for scene switching within projects
-        self.use_scene()
+    def use(self):
+        """
+        Updates project handlers to use this scene
+        """
 
-        for x in range(20):
-            for y in range(20):
-                for z in range(20):
-                    self.object_handler.add_object('cube', position=(x * 4, y * 4, z * 4))
-        
-    def use_scene(self):
         self.vao_handler.shader_handler.set_camera(self.camera)
         self.vao_handler.shader_handler.write_all_uniforms()
+        self.object_handler.use()
 
     def update(self):
         """

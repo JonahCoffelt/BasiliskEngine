@@ -1,12 +1,14 @@
+import os
 from scripts.scene import Scene
 from scripts.vao_handler import VAOHandler
 from scripts.prefab_handler import PrefabHandler
+from scripts.project_loader import load_project
 
 class ProjectHandler:
     """
     Stores, loads, and saves projects
     """
-    def __init__(self, engine, load: str='empty') -> None:
+    def __init__(self, engine, project_name: str='Project', load_directory: str='empty') -> None:
         """
         Initializes the specified projects
         """
@@ -16,14 +18,15 @@ class ProjectHandler:
         self.projects = {}
 
         # Loads specified projects
-        match load:
+        match load_directory:
             case 'empty':
                 # Creates a blank project and saves it
-                self.projects['Project'] = BlankProject(self.engine)
-                self.current_project = self.projects['Project']
+                self.projects[project_name] = BlankProject(self.engine)
+                self.current_project = self.projects[project_name]
             case _:
-                # Will load project save
-                self.load_project(load)
+                # Load project save
+                self.load_project(project_name, load_directory)
+                self.current_project = self.projects[project_name]
 
     def update(self):
         self.current_project.update()
@@ -45,6 +48,19 @@ class ProjectHandler:
         # Adds project
         self.projects[project_key] = BlankProject(self.engine)
 
+    def load_project(self, name, directory) -> None:
+        """
+        Loads a project from a file
+        """
+
+        # Checks for duplicate names
+        project_key, count = name, 1
+        while project_key in self.projects:
+            project_key = f'{name} ({count})'
+            count += 1
+        
+        self.projects[name] = LoadProject(self.engine, directory)
+
     def set_current_project(self, project_key: str='Project') -> None:
         """
         Sets the current project for rendering and editing
@@ -54,12 +70,7 @@ class ProjectHandler:
             raise KeyError('ProjectHandler.set_current_project: Given project name does not exist')
 
         self.current_project = self.projects[project_key]
-
-    def load_project(self, path) -> None:
-        """
-        Loads a project from a file
-        """
-        raise RuntimeError('ProjectHandler.load_project: Support for project loading is not yet supported. Can only create blank projects')
+        self.current_project.current_scene.use()
 
     def release(self):
         [project.release() for project in self.projects.values()]
@@ -79,10 +90,26 @@ class Project:
         self.prefab_handler = PrefabHandler(self)
 
     def update(self):
+        """
+        Updates the current scene        
+        """
+
         self.current_scene.update()
 
     def render(self):
+        """
+        Renders the current scene        
+        """
+
         self.current_scene.render()
+
+    def set_scene(self, scene: str):
+        """
+        Sets the scene being updated and rendered
+        """
+
+        self.scenes[scene].use()
+        self.current_scene = self.scenes[scene]
 
     def release(self):
         """
@@ -93,10 +120,21 @@ class Project:
 class BlankProject(Project):
     def __init__(self, engine) -> None:
         super().__init__(engine)
-        
+
         # Creates a cube prefab
         self.prefab_handler.add_prefab(max_objects=8000)
         # Adds a blank scene
         self.scenes['Scene'] = Scene(self.engine, self)
         # Set scene to be rendered and updated
         self.current_scene = self.scenes['Scene']
+        # Add cube
+        self.current_scene.object_handler.add_object('cube')
+        # Use the scene
+        self.current_scene.use()
+
+class LoadProject(Project):
+    def __init__(self, engine, directory) -> None:
+        super().__init__(engine)
+        # Loads the project file
+        load_project(self, directory)
+        #load_project(self, 'saves/SampleProject')
