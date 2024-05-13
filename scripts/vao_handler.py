@@ -7,11 +7,11 @@ class VAOHandler:
     """
     Stores VBO and shader handlers. Creates VAOs
     """
-    def __init__(self, scene):
-        self.scene = scene
-        self.ctx = self.scene.ctx
+    def __init__(self, project):
+        self.project = project
+        self.ctx = self.project.ctx
     
-        self.shader_handler = ShaderHandler(self.scene)
+        self.shader_handler = ShaderHandler(self.project)
         self.vbo_handler = VBOHandler(self.ctx)
 
         self.vaos = {}

@@ -1,5 +1,6 @@
 from scripts.scene import Scene
-
+from scripts.vao_handler import VAOHandler
+from scripts.prefab_handler import PrefabHandler
 
 class ProjectHandler:
     """
@@ -70,8 +71,12 @@ class Project:
     def __init__(self, engine) -> None:
         # Stores the engine
         self.engine = engine
+        self.ctx = engine.ctx
         # Creates blank scenes dictionary
         self.scenes = {}
+        # Creates render handlers to be used by scenes
+        self.vao_handler = VAOHandler(self)
+        self.prefab_handler = PrefabHandler(self)
 
     def update(self):
         self.current_scene.update()
@@ -89,7 +94,9 @@ class BlankProject(Project):
     def __init__(self, engine) -> None:
         super().__init__(engine)
         
+        # Creates a cube prefab
+        self.prefab_handler.add_prefab(max_objects=8000)
         # Adds a blank scene
-        self.scenes['Scene'] = Scene(self.engine)
+        self.scenes['Scene'] = Scene(self.engine, self)
         # Set scene to be rendered and updated
         self.current_scene = self.scenes['Scene']

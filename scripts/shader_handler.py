@@ -19,10 +19,9 @@ IDENTITY = glm.mat4x4(
 
 
 class ShaderHandler:
-    def __init__(self, scene) -> None:
-        self.scene = scene
-        self.ctx = self.scene.ctx
-        self.camera = scene.camera
+    def __init__(self, project) -> None:
+        self.project = project
+        self.ctx = self.project.ctx
         self.programs = {}
         self.uniform_attribs = {}
 
@@ -53,6 +52,13 @@ class ShaderHandler:
         # Create a program with shaders
         program = self.ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
         return program
+
+    def set_camera(self, camera):
+        """
+        Sets the camera. Allows for camera switching between any camera in the project        
+        """
+
+        self.camera = camera
 
     def get_all_uniforms(self) -> None:
         """

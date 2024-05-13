@@ -4,38 +4,43 @@ from scripts.object_handler import ObjectHandler
 
 
 class Scene:
-    def __init__(self, engine) -> None:
+    def __init__(self, engine, project) -> None:
         """
         Contains all data for scene
         """
 
-        # Stores the engine
+        # Stores the engine and project
         self.engine = engine
-        self.simulation_time = 0
+        self.project = project
         # Stores the ctx
         self.ctx = self.engine.ctx
+
+        self.time = 0
 
         # Makes a free cam
         self.camera = Camera(self.engine)
 
-        # Creats all necessary handlers
-        self.vao_handler = VAOHandler(self)
-        self.vao_handler.shader_handler.write_all_uniforms()
+        # Gets handlers from parent project
+        self.vao_handler = self.project.vao_handler
         self.object_handler = ObjectHandler(self)
-        self.object_handler.add_object('cube', position=(-10, 0, -10), scale=(20, 1, 20))
-        self.object_handler.add_object('cube', position=(5, 5, -5), scale=(1, 2, 1))
-
-        # for x in range(self.object_handler.max_objects):
-        #     for y in range(self.object_handler.max_objects):
-        #         for z in range(self.object_handler.max_objects):
-        #             self.object_handler.add_object('cube', position=(x * 4, y * 4, z * 4))
         
+        # Used to incorperate the scene into the render pipline. Allows for scene switching within projects
+        self.use_scene()
+
+        for x in range(20):
+            for y in range(20):
+                for z in range(20):
+                    self.object_handler.add_object('cube', position=(x * 4, y * 4, z * 4))
+        
+    def use_scene(self):
+        self.vao_handler.shader_handler.set_camera(self.camera)
+        self.vao_handler.shader_handler.write_all_uniforms()
 
     def update(self):
         """
         Updates dynamic objects, uniforms, and camera
         """
-        self.object_handler.write_instance_data()
+
         self.vao_handler.shader_handler.update_uniforms()
         self.camera.update()
 
