@@ -25,7 +25,8 @@ class ShaderHandler:
         self.programs = {}
         self.uniform_attribs = {}
 
-        self.programs['default'] = self.load_program()
+        self.programs['frame'] = self.load_program('frame')
+        self.programs['g_buffer'] = self.load_program('g_buffer')
 
     def load_program(self, name: str='default') -> mgl.Program:
         """
@@ -46,7 +47,7 @@ class ShaderHandler:
         # Parse through shader to find uniform variables
         for line in lines:
             tokens = line.strip().split(' ')
-            if tokens[0] == 'uniform':
+            if tokens[0] == 'uniform' and len(tokens) > 2:
                 self.uniform_attribs[name].append(tokens[2][:-1])
 
         # Create a program with shaders
@@ -71,6 +72,7 @@ class ShaderHandler:
             'm_proj' : self.camera.m_proj,
             'm_view' : self.camera.m_view,
             'm_model' : IDENTITY,
+            'i' : glm.int32(self.project.engine.disp),
         }
 
     def write_all_uniforms(self) -> None:

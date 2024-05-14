@@ -1,6 +1,7 @@
 import sys
 import pygame as pg
 import moderngl as mgl
+import glm
 from scripts.project_handler import ProjectHandler
 
 class Engine:
@@ -27,6 +28,7 @@ class Engine:
         pg.mouse.set_visible(False)
         # MGL context
         self.ctx = mgl.create_context()
+        self.disp = 1
         # Basic Gl setup
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
         # Time variables
@@ -71,6 +73,13 @@ class Engine:
                 if event.key == pg.K_2:
                     scenes = list(self.project_handler.current_project.scenes.keys())
                     self.project_handler.current_project.set_scene(scenes[1])
+
+                if event.key == pg.K_3:
+                    self.disp = 0
+                if event.key == pg.K_4:
+                    self.disp = 1
+                if event.key == pg.K_5:
+                    self.disp = 3
 
         # Update Project
         self.project_handler.update()

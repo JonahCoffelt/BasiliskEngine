@@ -28,6 +28,7 @@ class Scene:
         self.vao_handler.shader_handler.set_camera(self.camera)
         self.camera.use()
         self.vao_handler.shader_handler.write_all_uniforms()
+        self.project.texture_handler.write_textures(self.vao_handler.shader_handler.programs['g_buffer'])
         self.object_handler.use()
 
     def update(self):
@@ -43,8 +44,13 @@ class Scene:
         Redners all instances
         """
 
-        self.ctx.screen.use()
+        #self.ctx.screen.use()
+        self.project.render_handler.use()
+
         self.object_handler.render()
+
+        self.project.render_handler.render()
+
 
     def release(self):
         """

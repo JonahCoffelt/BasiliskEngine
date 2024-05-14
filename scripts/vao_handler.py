@@ -19,7 +19,8 @@ class VAOHandler:
         self.instance_buffers = {}
         self.max_objects = 20  # Cubed for the maximum amount of objects per type
 
-        self.add_vao()
+        self.add_vao(program_key='g_buffer')
+        self.add_vao('frame', 'frame', 'frame')
 
     def add_vao(self, name: str='cube', program_key: str='default', vbo_key: str='cube'):
         """

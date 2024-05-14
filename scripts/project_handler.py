@@ -1,7 +1,9 @@
 import os
 from scripts.scene import Scene
+from scripts.render_handler import DefferedRenderer
 from scripts.vao_handler import VAOHandler
 from scripts.prefab_handler import PrefabHandler
+from scripts.texture_handler import TextureHandler
 from scripts.project_loader import load_project
 
 class ProjectHandler:
@@ -85,8 +87,13 @@ class Project:
         self.ctx = engine.ctx
         # Creates blank scenes dictionary
         self.scenes = {}
-        # Creates render handlers to be used by scenes
+        # Creates vao handler to be used by scenes
         self.vao_handler = VAOHandler(self)
+        # Creates a deffered rendering handler
+        self.render_handler = DefferedRenderer(self.engine, self)
+        # Creates a texture handler. Also used for writting bindless textures
+        self.texture_handler = TextureHandler(self.engine)
+        # Creates prefab handler for objects
         self.prefab_handler = PrefabHandler(self)
 
     def update(self) -> None:
@@ -137,3 +144,9 @@ class LoadProject(Project):
         super().__init__(engine)
         # Loads the project file
         load_project(self, directory)
+        self.texture_handler.set_directory(directory + '/textures/')
+        self.texture_handler.load_texture('container', 'container.png')
+        self.texture_handler.load_texture('metal', 'img_1.png')
+        self.texture_handler.load_texture('crate', 'img.png')
+        self.texture_handler.generate_texture_arrays()
+        self.current_scene.use()
