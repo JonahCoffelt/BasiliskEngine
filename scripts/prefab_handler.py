@@ -26,7 +26,7 @@ class PrefabHandler:
 
 
 class Prefab:
-    def __init__(self, project, max_objects: int=100, vao: int='cube') -> None:
+    def __init__(self, project, max_objects: int=100, vao: str='cube') -> None:
         # Store the project
         self.project = project
         self.max_objects = max_objects
@@ -38,6 +38,11 @@ class Prefab:
 
         # Dictionary to store instance data
         self.instance_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(self.max_objects)], dtype='f4')
+
+        # Vertex data for physics
+        vbo = self.project.vao_handler.vbo_handler.vbos[self.project.vao_handler.vao_to_vbo_key[vao]]
+        self.triangles = vbo.triangles
+        self.unique_points = vbo.unique_points
 
     def write(self) -> None:
         """

@@ -30,6 +30,8 @@ class BaseVBO:
     def __init__(self, ctx):
         self.ctx = ctx
         self.vbo = self.get_vbo()
+        self.triangles: list
+        self.unique_points: list
         self.format: str = None
         self.attrib: list = None
 
@@ -50,14 +52,21 @@ class BaseVBO:
         
         vertex_data = self.get_vertex_data()
         vbo = self.ctx.buffer(vertex_data)
+
+        verticies = vertex_data[:,:3]
+
+        self.triangles = verticies.reshape((verticies.shape[0]//3, 3, 3)).tolist()
+        self.unique_points = []
+        [self.unique_points.append(x) for x in verticies.tolist() if x not in self.unique_points]
+
         return vbo
     
 
 class CubeVBO(BaseVBO):
     def __init__(self, ctx):
         super().__init__(ctx)
-        self.format = '2f 3f 3f'
-        self.attribs = ['in_texcoord', 'in_normal', 'in_position']
+        self.format = '3f 3f 2f'
+        self.attribs = ['in_position', 'in_normal', 'in_texcoord']
 
     def get_vertex_data(self):
         verticies = [(-1, -1, 1), ( 1, -1,  1), (1,  1,  1), (-1, 1,  1),
@@ -89,16 +98,16 @@ class CubeVBO(BaseVBO):
                    (0, -1, 0) * 6]
         normals = np.array(normals, dtype='f4').reshape(36, 3)
 
-        vertex_data = np.hstack([normals, vertex_data])
-        vertex_data = np.hstack([tex_coord_data, vertex_data])
+        vertex_data = np.hstack([vertex_data, normals])
+        vertex_data = np.hstack([vertex_data, tex_coord_data])
         return vertex_data
     
 
 class FrameVBO(BaseVBO):
     def __init__(self, ctx):
         super().__init__(ctx)
-        self.format = '2f 3f'
-        self.attribs = ['in_texcoord', 'in_position']
+        self.format = '3f 2f'
+        self.attribs = ['in_position', 'in_texcoord']
 
     def get_vertex_data(self):
         verticies = np.array([[-1, -1, 0],  # Bottom Left
@@ -122,5 +131,5 @@ class FrameVBO(BaseVBO):
         tex_coord_data = self.get_data(tex_coord_verticies, tex_coord_indicies)
 
 
-        vertex_data = np.hstack([tex_coord_data, vertex_data])
+        vertex_data = np.hstack([vertex_data, tex_coord_data])
         return vertex_data

@@ -101,3 +101,6 @@ class Object:
         self.index = index
         self.prefab = prefab
         self.data = [*position, *scale, *rotation]
+
+        self.tags = []
+        self.components = []

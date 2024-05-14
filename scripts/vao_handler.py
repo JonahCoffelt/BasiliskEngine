@@ -15,12 +15,13 @@ class VAOHandler:
         self.vbo_handler = VBOHandler(self.ctx)
 
         self.vaos = {}
+        self.vao_to_vbo_key = {}
         self.instance_buffers = {}
         self.max_objects = 20  # Cubed for the maximum amount of objects per type
 
-        self.vaos['cube'], self.instance_buffers['cube'] = self.add_vao()
+        self.add_vao()
 
-    def add_vao(self, program_key: str='default', vbo_key: str='cube'):
+    def add_vao(self, name: str='cube', program_key: str='default', vbo_key: str='cube'):
         """
         Adds a new VAO with a program and VBO. Creates an empty instance buffer
         """
@@ -34,7 +35,8 @@ class VAOHandler:
                                               (instance_buffer, '3f 3f 3f /i', *['in_instance_position', 'in_instance_scale', 'in_instance_rotation'])], 
                                               skip_errors=True)
 
-        return vao, instance_buffer
+
+        self.vaos[name], self.instance_buffers[name], self.vao_to_vbo_key[name] = vao, instance_buffer, vbo_key
     
     def release(self):
         """

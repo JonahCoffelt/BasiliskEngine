@@ -32,7 +32,7 @@ class Scene:
 
     def update(self):
         """
-        Updates dynamic objects, uniforms, and camera
+        Updates uniforms, and camera
         """
 
         self.vao_handler.shader_handler.update_uniforms()
