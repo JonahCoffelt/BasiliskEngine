@@ -27,12 +27,13 @@ def load_project(project, directory: str):
         prefabs = []
         while i < len(lines):
             line = lines[i].strip()
-            if len(line.split(' ')) == 3: prefabs.append(line.split(' '))
+            if len(line.split(' ')) == 4: prefabs.append(line.split(' '))
             i += 1
 
 
     for prefab in prefabs:
-        project.prefab_handler.add_prefab(prefab[0], int(prefab[1]), prefab[2])
+        texture_id = prefab[3][1:-1].split(',')
+        project.prefab_handler.add_prefab(prefab[0], int(prefab[1]), prefab[2], (int(texture_id[0]), int(texture_id[1])))
     # Loads all the scenes to the project class
     load_scenes(project, f'{directory}/scenes')
     # Selects the initial scene

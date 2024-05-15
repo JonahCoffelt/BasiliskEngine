@@ -1,21 +1,8 @@
 import moderngl as mgl
-import numpy as np
-import glm
 
 
 # Predefined uniforms that do not change each frame
 single_frame_uniforms = ['m_proj']
-
-
-# This will go away eventually. Only a placeholder right now
-IDENTITY = glm.mat4x4(
-    np.array([
-        [1, 0, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ], dtype='f4')
-)
 
 
 class ShaderHandler:
@@ -25,7 +12,8 @@ class ShaderHandler:
         self.programs = {}
         self.uniform_attribs = {}
 
-        self.programs['default'] = self.load_program()
+        self.programs['frame'] = self.load_program('frame')
+        self.programs['g_buffer'] = self.load_program('g_buffer')
 
     def load_program(self, name: str='default') -> mgl.Program:
         """
@@ -46,7 +34,7 @@ class ShaderHandler:
         # Parse through shader to find uniform variables
         for line in lines:
             tokens = line.strip().split(' ')
-            if tokens[0] == 'uniform':
+            if tokens[0] == 'uniform' and len(tokens) > 2:
                 self.uniform_attribs[name].append(tokens[2][:-1])
 
         # Create a program with shaders
@@ -70,7 +58,6 @@ class ShaderHandler:
         self.uniform_values = {
             'm_proj' : self.camera.m_proj,
             'm_view' : self.camera.m_view,
-            'm_model' : IDENTITY,
         }
 
     def write_all_uniforms(self) -> None:

@@ -2,4 +2,6 @@ initial scene
     scene1
 
 prefabs
-    cube 8000 cube
+    cube 2000 cube (2,0)
+    metal_box 2000 cube (2,1)
+    crate 2000 cube (3,0)

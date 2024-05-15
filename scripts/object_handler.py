@@ -1,4 +1,10 @@
 import numpy as np
+import itertools
+import array
+
+
+def flatten(xss):
+    return [x for xs in xss for x in xs]
 
 
 class ObjectHandler:
@@ -16,6 +22,8 @@ class ObjectHandler:
         self.prefabs = self.scene.project.prefab_handler.prefabs
         # Availible indices per object prefab. Used for writting to buffer
         self.instance_indices = {prefab : [i for i in range(0, self.prefabs[prefab].max_objects)] for prefab in self.prefabs}
+
+        self.instance_data_lists = {prefab : [[] for i in range(self.prefabs[prefab].max_objects)] for prefab in self.prefabs}
 
         # Objects list
         self.objects = []
@@ -44,7 +52,7 @@ class ObjectHandler:
         # Adds a new object of the object to the objects list (IDK how else to phrase that lmao)
         self.objects.append(Object(prefab, index, position, scale, rotation))
         # Updates object's data in the instance data array
-        self.prefabs[prefab].instance_data[index] = [*position, *scale, *rotation]
+        self.instance_data_lists[prefab][index] = [*position, *scale, *rotation]
 
     def remove_object(self, object) -> None:
         """
@@ -61,7 +69,7 @@ class ObjectHandler:
         # Frees up the index for future objects to use
         self.instance_indices[prefab].append(object.index)
         # Sets the instance data to empty
-        self.prefabs[prefab].instance_data[index] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.instance_data_lists[object.prefab][object.index] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         # Removes object from handler's object list
         self.objects.remove(object)
 
@@ -81,7 +89,14 @@ class ObjectHandler:
         if rotation: object.data[6:] =  rotation
 
         # Updates data in instance data array
-        self.prefabs[object.prefab].instance_data[object.index] = object.data
+        self.instance_data_lists[object.prefab][object.index][:] = object.data[:]
+
+    def construct_data(self):
+        for object_prefab in self.instance_data_lists:
+            out = []
+            for sublist in self.instance_data_lists[object_prefab]:
+                out.extend(sublist)
+            self.prefabs[object_prefab].instance_data = array.array('f', out)
 
 
 class Object:
