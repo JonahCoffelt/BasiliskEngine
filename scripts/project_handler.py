@@ -148,5 +148,6 @@ class LoadProject(Project):
         self.texture_handler.load_texture('container', 'container.png')
         self.texture_handler.load_texture('metal', 'img_1.png')
         self.texture_handler.load_texture('crate', 'img.png')
+        self.texture_handler.load_texture('cat', 'cat.png')
         self.texture_handler.generate_texture_arrays()
         self.current_scene.use()

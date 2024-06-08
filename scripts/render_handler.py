@@ -1,3 +1,6 @@
+import moderngl as mgl
+
+
 class DefferedRenderer:
     def __init__(self, engine, project) -> None:
         self.engine = engine
@@ -15,8 +18,8 @@ class DefferedRenderer:
         
         size = self.engine.win_size
         self.depth_texture = self.ctx.depth_texture(size)
-        self.position_texture = self.ctx.texture(size, 4)
-        self.normal_texture = self.ctx.texture(size, 3)
+        self.position_texture = self.ctx.texture(size, 4, dtype='f4')
+        self.normal_texture = self.ctx.texture(size, 3, dtype='f4')
         self.albedo_texture = self.ctx.texture(size, 3)
 
         self.framebuffer = self.ctx.framebuffer([self.position_texture, self.normal_texture, self.albedo_texture], self.depth_texture)

@@ -1,11 +1,11 @@
 import numpy as np
-import itertools
 import array
+from numba import njit
+import glm
 
-
-def flatten(xss):
-    return [x for xs in xss for x in xs]
-
+@njit
+def distance(a, b):
+    return np.sqrt(np.sum((a - b) ** 2))
 
 class ObjectHandler:
     def __init__(self, scene) -> None:
@@ -20,23 +20,22 @@ class ObjectHandler:
 
         # Prefabs dictionary
         self.prefabs = self.scene.project.prefab_handler.prefabs
-        # Availible indices per object prefab. Used for writting to buffer
-        self.instance_indices = {prefab : [i for i in range(0, self.prefabs[prefab].max_objects)] for prefab in self.prefabs}
 
-        self.instance_data_lists = {prefab : [[] for i in range(self.prefabs[prefab].max_objects)] for prefab in self.prefabs}
+        # Temporal Threads
+        self.threads = 4
+        self.current_thread = 0
+        self.cumulative_data = {prefab : array.array('f') for prefab in self.prefabs} 
 
         # Objects list
         self.objects = []
+        self.chunks = {}
+        self.chunk_size = 50
+        self.render_distance = 225
+        self.in_range_chunks = []
         
     def render(self):
         for prefab in self.prefabs.values():
             prefab.render()
-
-    def use(self):
-        for prefab in self.prefabs.values():
-            prefab.instance_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(prefab.max_objects)], dtype='f4')
-        for object in self.objects:
-            self.prefabs[object.prefab].instance_data[object.index] = object.data
 
     def add_object(self, prefab, position: tuple=(0, 0, 0), scale: tuple=(1, 1, 1), rotation: tuple=(0, 0, 0)) -> None:
         """
@@ -44,15 +43,14 @@ class ObjectHandler:
         Must have a prefab, may be given a position, scale or rotation
         """
 
-        if not len(self.instance_indices[prefab]):
-            raise IndexError(f"ObjectHandler.add_object: Object prefab '{prefab}' is full. The limit is currently set to {self.prefabs[prefab].max_objects} objects per prefab")
+        chunk_pos = int(position[0] // self.chunk_size), int(position[1] // self.chunk_size), int(position[2] // self.chunk_size)
 
-        # Gets the first availible object index
-        index = self.instance_indices[prefab].pop(0)
+        chunk_key = f'{chunk_pos[0]},{chunk_pos[1]},{chunk_pos[2]}'
+        if not chunk_key in self.chunks: self.chunks[chunk_key] = [glm.vec3((chunk_pos[0] + .5) * self.chunk_size, (chunk_pos[1] + .5) * self.chunk_size, (chunk_pos[2] + .5) * self.chunk_size)]
+        
         # Adds a new object of the object to the objects list (IDK how else to phrase that lmao)
-        self.objects.append(Object(prefab, index, position, scale, rotation))
-        # Updates object's data in the instance data array
-        self.instance_data_lists[prefab][index] = [*position, *scale, *rotation]
+        self.objects.append(Object(prefab, position, scale, rotation))
+        self.chunks[chunk_key].append(self.objects[-1])
 
     def remove_object(self, object) -> None:
         """
@@ -62,45 +60,102 @@ class ObjectHandler:
         if not object in self.objects:
             raise ValueError(f"ObjectHandler.remove_object: The object given ({object}) was not found in handler's object list")
 
-        # Gets relevant look up data for the object
-        prefab = object.prefab
-        index = object.index
 
-        # Frees up the index for future objects to use
-        self.instance_indices[prefab].append(object.index)
-        # Sets the instance data to empty
-        self.instance_data_lists[object.prefab][object.index] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        # Removes object from handler's object list
         self.objects.remove(object)
 
-    def set_object_data(self, object, position=None, scale=None, rotation=None) -> None:
-        """
-        Sets the position, scale, or rotation of the object.
-        If nothing is given for a particular value it will not be changed
-        Args:
-            position: tuple=(x, y, z)
-            scale: tuple=(x, y, z)
-            rotation: tuple=(x, y, z)
-        """
 
-        # Updates each value if given
-        if position: object.data[:3] = position
-        if scale: object.data[3:6] = scale
-        if rotation: object.data[6:] =  rotation
+    def get_chunks_in_range(self):
+        chunk_keys = []
 
-        # Updates data in instance data array
-        self.instance_data_lists[object.prefab][object.index][:] = object.data[:]
+        cam_pos = self.scene.camera.position
+        cam_chunk_pos = (int(cam_pos.x // self.chunk_size), int(cam_pos.y // self.chunk_size), int(cam_pos.z // self.chunk_size))
+        render_range = int(self.render_distance // self.chunk_size)
 
-    def construct_data(self):
-        for object_prefab in self.instance_data_lists:
-            out = []
-            for sublist in self.instance_data_lists[object_prefab]:
-                out.extend(sublist)
-            self.prefabs[object_prefab].instance_data = array.array('f', out)
+        for x in range(cam_chunk_pos[0] - render_range, cam_chunk_pos[0] + render_range + 1):
+            for y in range(cam_chunk_pos[1] - render_range, cam_chunk_pos[1] + render_range + 1):
+                for z in range(cam_chunk_pos[2] - render_range, cam_chunk_pos[2] + render_range + 1):
+                    chunk_key = f'{x},{y},{z}'
+                    if not chunk_key in self.chunks: continue
+                    chunk_objects = self.chunks[chunk_key]
+
+                    dist = glm.length(chunk_objects[0] - cam_pos)
+                    if dist > self.render_distance: continue
+
+                    chunk_keys.append(chunk_key)
+        
+        return chunk_keys
+
+    def get_objects_in_range(self):
+        objects = []
+
+        for chunk in self.in_range_chunks:
+            chunk_objects = self.chunks[chunk]
+            objects.extend(chunk_objects)
+        
+        return objects
+
+    def update(self):
+        thread_data = {prefab : [] for prefab in self.prefabs}
+
+        removes = []
+
+
+        # Loop through all chunks in range
+        for chunk in self.in_range_chunks:
+            # Get the objects from the chunk
+            objects = self.chunks[chunk]
+            # Loop through the objects, skipping the objects not on the current thread
+            for object in objects[self.current_thread+1:len(objects):self.threads]:
+                # Add the objects data to the current thread data
+                data = object.data
+                thread_data[object.prefab].append(data)
+            
+                # Dont update static objects
+                if 'static' in object.tags: continue
+
+                # Get the chunk the object is in
+                new_chunk = int(data[0] // self.chunk_size), int(data[1] // self.chunk_size), int(data[2] // self.chunk_size)
+                new_chunk_position = glm.vec3((new_chunk[0] + .5) * self.chunk_size, (new_chunk[1] + .5) * self.chunk_size, (new_chunk[2] + .5) * self.chunk_size)
+
+                # Dont update object chunk if it is in same chunk as before
+                if new_chunk_position == objects[0]: continue
+
+                # Get the chunk key of the object's new chunk
+                new_chunk_key = f'{new_chunk[0]},{new_chunk[1]},{new_chunk[2]}'
+
+                # Create new chunk if needed
+                if not new_chunk_key in self.chunks: 
+                    self.chunks[new_chunk_key] = [new_chunk_position]
+
+                # Move the object
+                self.chunks[new_chunk_key].append(object)
+                removes.append((chunk, object))
+                #self.chunks[chunk].remove(object)
+
+                # Update the in range chunks
+                self.in_range_chunks.append(new_chunk_key)
+
+        for object in removes:
+            self.chunks[object[0]].remove(object[1])
+
+        for prefab in self.prefabs:
+            data = []
+            for sublist in thread_data[prefab]:
+                data.extend(sublist)
+
+            self.cumulative_data[prefab].extend(array.array('f', data))
+
+        self.current_thread += 1
+        if self.current_thread == self.threads:
+            for prefab in self.cumulative_data:
+                self.prefabs[prefab].write(self.cumulative_data[prefab])
+                self.cumulative_data[prefab] = array.array('f')
+            self.current_thread = 0
+            self.in_range_chunks = self.get_chunks_in_range()
 
 
 class Object:
-    def __init__(self, prefab: str, index: int, position: tuple=(0, 0, 0), scale: tuple=(1, 1, 1), rotation: tuple=(0, 0, 0)) -> None:
+    def __init__(self, prefab: str, position: tuple=(0, 0, 0), scale: tuple=(1, 1, 1), rotation: tuple=(0, 0, 0)) -> None:
         """
         Stores instance data for an object in object.data
         Variables:
@@ -113,9 +168,11 @@ class Object:
         """
 
         # Variables to access object's data
-        self.index = index
         self.prefab = prefab
         self.data = [*position, *scale, *rotation]
 
-        self.tags = []
-        self.components = []
+        self.tags = set([])
+        self.components = set([])
+    
+    def __repr__(self) -> str:
+        return f'<Object: {self.prefab} {self.data[:3]}>'

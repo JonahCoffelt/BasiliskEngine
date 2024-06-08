@@ -1,5 +1,5 @@
 import moderngl as mgl
-
+import glm
 
 # Predefined uniforms that do not change each frame
 single_frame_uniforms = ['m_proj']
@@ -58,6 +58,8 @@ class ShaderHandler:
         self.uniform_values = {
             'm_proj' : self.camera.m_proj,
             'm_view' : self.camera.m_view,
+            'cameraPosition' : self.camera.position,
+            'winSize' : glm.vec2(*self.project.engine.win_size)
         }
 
     def write_all_uniforms(self) -> None:

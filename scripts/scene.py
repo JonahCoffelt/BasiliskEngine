@@ -1,6 +1,9 @@
+import pygame as pg
+import random
 from scripts.camera import Camera
 from scripts.object_handler import ObjectHandler
-import random
+from scripts.light_handler import LightHandler
+
 
 class Scene:
     def __init__(self, engine, project) -> None:
@@ -19,16 +22,23 @@ class Scene:
 
         # Gets handlers from parent project
         self.vao_handler = self.project.vao_handler
+
+        # Creates handlers for the scene
         self.object_handler = ObjectHandler(self)
+        self.light_handler = LightHandler()
 
-        mats = ('cube', 'metal_box', 'crate')
+        self.add_grid(10, 8)
+        self.tracked_object = self.object_handler.objects[1]
 
-        for x in range(-15, 15):
-            for y in range(3):
-                for z in range(-15, 15):
-                        mat = mats[random.randrange(0, 3)]
-                        self.object_handler.add_object(mat, position=(x * 4, y * 8, z * 4))
         
+    def add_grid(self, size, spacing=4):
+        mats = ('box', 'metal_box', 'crate')
+        for x in range(size):
+            for y in range(size):
+                for z in range(size):
+                    mat = mats[random.randrange(0, 3)]
+                    self.object_handler.add_object(mat, position=(x * spacing, y * spacing, z * spacing), rotation=(0, 0, 0))
+
     def use(self):
         """
         Updates project handlers to use this scene
@@ -39,17 +49,34 @@ class Scene:
         self.project.render_handler.generate_g_buffer()
         self.vao_handler.shader_handler.write_all_uniforms()
         self.project.texture_handler.write_textures(self.vao_handler.shader_handler.programs['g_buffer'])
-        self.object_handler.use()
 
     def update(self):
         """
         Updates uniforms, and camera
         """
-        self.timer += self.engine.dt
-        if self.timer > 16:
-            self.object_handler.construct_data()
-            self.timer = 0
+        # self.timer += self.engine.dt
+        # if self.timer > 16:
+        #     for object in self.object_handler.objects:
+        #         object.data[0] += .1
+        #     self.timer = 0
+
+        if self.engine.keys[pg.K_UP]:
+            self.tracked_object.data[0] += 5 * self.engine.dt
+        if self.engine.keys[pg.K_DOWN]:
+            self.tracked_object.data[0] -= 5 * self.engine.dt
+        if self.engine.keys[pg.K_LEFT]:
+            self.tracked_object.data[2] += 5 * self.engine.dt
+        if self.engine.keys[pg.K_RIGHT]:
+            self.tracked_object.data[2] -= 5 * self.engine.dt
+
+        if self.engine.keys[pg.K_r]:
+            self.object_handler.remove_object(self.tracked_object)
+        if self.engine.keys[pg.K_p]:
+            print(self.object_handler.objects)
+        
+        self.object_handler.update()
         self.vao_handler.shader_handler.update_uniforms()
+        self.light_handler.write(self.vao_handler.vaos['frame'].program)
         self.camera.update()
 
     def render(self):

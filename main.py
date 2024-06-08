@@ -3,6 +3,7 @@ import pygame as pg
 import moderngl as mgl
 from scripts.project_handler import ProjectHandler
 
+
 class Engine:
     """
     Instance of python engine. Stores the window, context, and projects
@@ -42,7 +43,7 @@ class Engine:
         """
 
         # Update time
-        self.dt = self.clock.tick()
+        self.dt = self.clock.tick(120) / 1000
         self.time += self.dt
         pg.display.set_caption(str(round(self.clock.get_fps())))
         # Pygame events
@@ -73,8 +74,8 @@ class Engine:
                     self.project_handler.current_project.set_scene(scenes[1])
             if event.type == pg.MOUSEBUTTONUP:
                 # Lock mouse
-                    pg.event.set_grab(True)
-                    pg.mouse.set_visible(False)
+                pg.event.set_grab(True)
+                pg.mouse.set_visible(False)
 
         # Update Project
         self.project_handler.update()

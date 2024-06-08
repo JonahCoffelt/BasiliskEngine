@@ -1,6 +1,6 @@
-import numpy as np
 import glm
-
+import array
+import moderngl as mgl
 
 class PrefabHandler:
     def __init__(self, project) -> None:
@@ -20,14 +20,14 @@ class PrefabHandler:
                 The name of the vao to be used for this prefab
         """
 
-        if max_objects > 8000:
-            raise ValueError(f"PrefabHandler.add_prefab: Attempted to make a prefab with {max_objects} maximum objects. This number may not exceed 8000 by default.")
+        # if max_objects > self.project.vao_handler.max_objects ** 3:
+        #     raise ValueError(f"PrefabHandler.add_prefab: Attempted to make a prefab with {max_objects} maximum objects. This number may not exceed 8000 by default.")
 
-        self.prefabs[name] = Prefab(self.project, max_objects, vao, texture_id)
+        self.prefabs[name] = Prefab(self.project, max_objects, name, texture_id)
 
 
 class Prefab:
-    def __init__(self, project, max_objects: int=100, vao: str='cube', texture_id: tuple=(2, 1)) -> None:
+    def __init__(self, project, max_objects: int=100, vao: str='cube', texture_id: tuple=(4, 0)) -> None:
         # Store the project
         self.project = project
         self.max_objects = max_objects
@@ -39,24 +39,26 @@ class Prefab:
         self.instance_buffer = self.project.vao_handler.instance_buffers[vao]
 
         # Dictionary to store instance data
-        self.instance_data = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0] for i in range(self.max_objects)], dtype='f4')
+        self.instance_data = array.array('f')
 
         # Vertex data for physics
         vbo = self.project.vao_handler.vbo_handler.vbos[self.project.vao_handler.vao_to_vbo_key[vao]]
         self.triangles = vbo.triangles
         self.unique_points = vbo.unique_points
 
-    def write(self) -> None:
+    def write(self, data) -> None:
         """
         Writes instance data for a prefab to the buffer of the vao
         """
 
+        self.instance_data = data
+        self.instance_buffer.clear()
         self.instance_buffer.write(self.instance_data)
-        self.vao.program['textureID'].write(self.texture_id)
 
     def render(self) -> None:
         """
         Renders instances of the prefabs vao
         """
-        self.write()
-        self.vao.render(instances=self.max_objects)
+
+        self.vao.program['textureID'].write(self.texture_id)
+        self.vao.render(instances=len(self.instance_data))

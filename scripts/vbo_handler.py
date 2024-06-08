@@ -1,5 +1,5 @@
 import numpy as np
-
+import pywavefront
 
 class VBOHandler:
     """
@@ -10,6 +10,7 @@ class VBOHandler:
         self.vbos = {}
         self.vbos['cube'] = CubeVBO(self.ctx)
         self.vbos['frame'] = FrameVBO(self.ctx)
+        self.vbos['cat'] = ModelVBO(self.ctx, 'saves/models/cat/20430_Cat_v1_NEW.obj')
 
     def load_vbo(self, path: str='vbo'):
         raise RuntimeError('VBOHandler.add_vbo: No support for vbo loading')
@@ -132,4 +133,33 @@ class FrameVBO(BaseVBO):
 
 
         vertex_data = np.hstack([vertex_data, tex_coord_data])
+        return vertex_data
+    
+
+class ModelVBO(BaseVBO):
+    def __init__(self, ctx, path):
+        self.path = path
+        super().__init__(ctx)
+        self.format = '2f 3f 3f'
+        self.attribs = ['in_texcoord', 'in_normal', 'in_position']
+        self.triangles = None
+        self.unique_points = None
+
+    def get_vbo(self):
+        """
+        Creates a buffer with the vertex data
+        """
+        
+        vertex_data = self.get_vertex_data()
+        vbo = self.ctx.buffer(vertex_data)
+
+        return vbo
+
+    def get_vertex_data(self):
+        objs = pywavefront.Wavefront(self.path, cache=True, parse=True)
+        obj = objs.materials.popitem()[1]
+        vertex_data = obj.vertices
+        vertex_data = np.array(vertex_data, dtype='f4')
+        vertex_data = vertex_data.reshape(vertex_data.shape[0]//8, 8)
+        print(vertex_data.shape)
         return vertex_data

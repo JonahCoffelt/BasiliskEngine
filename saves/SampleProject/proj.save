@@ -1,7 +1,10 @@
 initial scene
     scene1
 
+vao_templates
+    cube g_buffer cube
+
 prefabs
-    cube 2000 cube (2,0)
-    metal_box 2000 cube (2,1)
-    crate 2000 cube (3,0)
+    box 1000000 cube (2,0)
+    metal_box 1000000 cube (3,0)
+    crate 1000000 cube (2,1)
