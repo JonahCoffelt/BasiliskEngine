@@ -45,8 +45,6 @@ def load_project(project, directory: str):
         texture_id = prefab[3][1:-1].split(',')
         project.prefab_handler.add_prefab(prefab[0], int(prefab[1]), prefab[2], (int(texture_id[0]), int(texture_id[1])))
 
-    print(project.vao_handler.instance_buffers)
-
     # Loads all the scenes to the project class
     load_scenes(project, f'{directory}/scenes')
     # Selects the initial scene

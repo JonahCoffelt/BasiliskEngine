@@ -27,8 +27,7 @@ class Scene:
         self.object_handler = ObjectHandler(self)
         self.light_handler = LightHandler()
 
-        self.add_grid(10, 8)
-        self.tracked_object = self.object_handler.objects[1]
+        self.add_grid(20, 4)
 
         
     def add_grid(self, size, spacing=4):
@@ -54,25 +53,18 @@ class Scene:
         """
         Updates uniforms, and camera
         """
-        # self.timer += self.engine.dt
-        # if self.timer > 16:
-        #     for object in self.object_handler.objects:
-        #         object.data[0] += .1
-        #     self.timer = 0
 
         if self.engine.keys[pg.K_UP]:
-            self.tracked_object.data[0] += 5 * self.engine.dt
+            self.object_handler.objects[0].data[0] += 5 * self.engine.dt
         if self.engine.keys[pg.K_DOWN]:
-            self.tracked_object.data[0] -= 5 * self.engine.dt
+            self.object_handler.objects[0].data[0] -= 5 * self.engine.dt
         if self.engine.keys[pg.K_LEFT]:
-            self.tracked_object.data[2] += 5 * self.engine.dt
+            self.object_handler.objects[0].data[2] += 5 * self.engine.dt
         if self.engine.keys[pg.K_RIGHT]:
-            self.tracked_object.data[2] -= 5 * self.engine.dt
+            self.object_handler.objects[0].data[2] -= 5 * self.engine.dt
 
         if self.engine.keys[pg.K_r]:
-            self.object_handler.remove_object(self.tracked_object)
-        if self.engine.keys[pg.K_p]:
-            print(self.object_handler.objects)
+            self.object_handler.remove_object(self.object_handler.objects[0])
         
         self.object_handler.update()
         self.vao_handler.shader_handler.update_uniforms()

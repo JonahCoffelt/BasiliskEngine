@@ -22,7 +22,7 @@ class Engine:
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
         # Pygame display init
-        pg.display.set_mode(self.win_size, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
+        pg.display.set_mode(self.win_size, vsync=False, flags=pg.OPENGL | pg.DOUBLEBUF | pg.RESIZABLE)
         # Lock mouse in place and hide
         pg.event.set_grab(True)
         pg.mouse.set_visible(False)
@@ -43,7 +43,7 @@ class Engine:
         """
 
         # Update time
-        self.dt = self.clock.tick(120) / 1000
+        self.dt = self.clock.tick() / 1000
         self.time += self.dt
         pg.display.set_caption(str(round(self.clock.get_fps())))
         # Pygame events
