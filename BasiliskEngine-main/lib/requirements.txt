@@ -1,0 +1,4 @@
+PyGLM
+numpy
+pygame
+moderngl
