@@ -43,7 +43,6 @@ class Prefab:
 
         # Vertex data for physics
         vbo = self.project.vao_handler.vbo_handler.vbos[self.project.vao_handler.vao_to_vbo_key[vao]]
-        self.triangles = vbo.triangles
         self.unique_points = vbo.unique_points
 
     def write(self, data) -> None:
@@ -62,3 +61,31 @@ class Prefab:
 
         self.vao.program['textureID'].write(self.texture_id)
         self.vao.render(instances=len(self.instance_data))
+
+
+class Softbody(Prefab):
+    def __init__(self, project, max_objects: int = 100, texture_id: tuple = (3, 0), vbo=None) -> None:
+        # Store the project
+        self.project = project
+        self.max_objects = max_objects
+        self.texture_id = glm.vec2(*texture_id)
+
+        # Vao data
+        self.program = self.project.vao_handler.shader_handler.programs['g_buffer']
+        self.vbo = vbo
+
+        # Store buffer and vao for writing and rendering
+        self.vao_name = 'softbody'
+        self.instance_buffer = self.project.ctx.buffer(reserve=(5 ** 3) * (9 * 4), dynamic=True)
+        self.vao = self.project.ctx.vertex_array(self.program, [(self.vbo.vbo, self.vbo.format, *self.vbo.attribs), 
+                                            (self.instance_buffer, '3f 3f 3f /i', *['in_instance_position', 'in_instance_scale', 'in_instance_rotation'])], 
+                                            skip_errors=True)
+
+        # Dictionary to store instance data
+        self.instance_data = array.array('f')
+
+        # Vertex data for physics
+        self.unique_points = self.vbo.unique_points
+
+    def reconstruct_mesh(self):
+        self.vbo.reconstruct_mesh()

@@ -3,7 +3,8 @@ import random
 from scripts.camera import Camera
 from scripts.object_handler import ObjectHandler
 from scripts.light_handler import LightHandler
-
+from scripts.prefab_handler import Softbody
+from scripts.vbo_handler import CubeVBO
 
 class Scene:
     def __init__(self, engine, project) -> None:
@@ -23,11 +24,16 @@ class Scene:
         # Gets handlers from parent project
         self.vao_handler = self.project.vao_handler
 
+        self.project.prefab_handler.prefabs['softbody'] = Softbody(self.project, vbo=CubeVBO(self.ctx))
+        
         # Creates handlers for the scene
         self.object_handler = ObjectHandler(self)
         self.light_handler = LightHandler()
 
+
         self.add_grid(20, 4)
+
+        self.object_handler.add_object('softbody', position=(-5, 0, -5), rotation=(0, 0, 0))
 
         
     def add_grid(self, size, spacing=4):
@@ -66,6 +72,9 @@ class Scene:
         if self.engine.keys[pg.K_r]:
             self.object_handler.remove_object(self.object_handler.objects[0])
         
+        self.project.prefab_handler.prefabs['softbody'].vbo.unique_points[random.randrange(8)][random.randrange(3)] += random.uniform(-self.engine.dt * 20, self.engine.dt * 20)
+        self.project.prefab_handler.prefabs['softbody'].reconstruct_mesh()
+
         self.object_handler.update()
         self.vao_handler.shader_handler.update_uniforms()
         self.light_handler.write(self.vao_handler.vaos['frame'].program)

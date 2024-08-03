@@ -1,5 +1,13 @@
 import numpy as np
 import pywavefront
+from numba import njit
+
+
+@njit
+def construct_mesh(vertex_data, mesh_indicies, unique_points):
+    for i, index in enumerate(mesh_indicies):
+        vertex_data[i,:3] = unique_points[int(index)]
+
 
 class VBOHandler:
     """
@@ -31,7 +39,6 @@ class BaseVBO:
     def __init__(self, ctx):
         self.ctx = ctx
         self.vbo = self.get_vbo()
-        self.triangles: list
         self.unique_points: list
         self.format: str = None
         self.attrib: list = None
@@ -51,23 +58,36 @@ class BaseVBO:
         Creates a buffer with the vertex data
         """
         
-        vertex_data = self.get_vertex_data()
-        vbo = self.ctx.buffer(vertex_data)
+        self.vertex_data = self.get_vertex_data()
+        vbo = self.ctx.buffer(self.vertex_data)
 
-        verticies = vertex_data[:,:3]
+        verticies = self.vertex_data[:,:3]
 
-        self.triangles = verticies.reshape((verticies.shape[0]//3, 3, 3)).tolist()
         self.unique_points = []
         [self.unique_points.append(x) for x in verticies.tolist() if x not in self.unique_points]
 
+        # Save the mash vertex indicies for softbody reconstruction
+        self.mesh_indicies = np.zeros(shape=(len(self.vertex_data)))
+        for i, vertex in enumerate(self.vertex_data):
+            index = self.unique_points.index(vertex[:3].tolist())
+            self.mesh_indicies[i] = index
+
+        self.unique_points = np.array(self.unique_points, dtype='f4')
+
         return vbo
     
+    def reconstruct_mesh(self):
+        construct_mesh(self.vertex_data, self.mesh_indicies, self.unique_points)
+        self.vbo.write(self.vertex_data)
 
+    
 class CubeVBO(BaseVBO):
     def __init__(self, ctx):
         super().__init__(ctx)
         self.format = '3f 3f 2f'
         self.attribs = ['in_position', 'in_normal', 'in_texcoord']
+        self.unique_points[0][0] -= .75
+        self.reconstruct_mesh()
 
     def get_vertex_data(self):
         verticies = [(-1, -1, 1), ( 1, -1,  1), (1,  1,  1), (-1, 1,  1),
@@ -161,5 +181,11 @@ class ModelVBO(BaseVBO):
         vertex_data = obj.vertices
         vertex_data = np.array(vertex_data, dtype='f4')
         vertex_data = vertex_data.reshape(vertex_data.shape[0]//8, 8)
-        print(vertex_data.shape)
         return vertex_data
+    
+class SoftbodyVBO(BaseVBO):
+    def __init__(self, ctx, reference_vbo):
+        super().__init__(self, ctx)
+        self.unique_points: reference_vbo.unique_points
+        self.format: reference_vbo.format
+        self.attrib: reference_vbo.attrib
