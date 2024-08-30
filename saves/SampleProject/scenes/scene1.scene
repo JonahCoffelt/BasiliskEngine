@@ -1,8 +1,0 @@
-camera
-    0 0 0 0 0 0
-
-objects
-    box 0 0 0 1 1 1 0 0 0
-    metal_box 2 2 2 1 1 1 0 0 0
-    crate 4 4 4 1 1 1 0 0 0
-    metal_box 6 6 6 1 1 1 0 0 0
