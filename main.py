@@ -1,8 +1,8 @@
 import sys
 import pygame as pg
 import moderngl as mgl
-from scripts.project_handler import ProjectHandler
-
+from scripts.project import Project
+import cudart
 
 class Engine:
     """
@@ -35,7 +35,7 @@ class Engine:
         self.time = 0
         self.dt = 0
         # Project handler
-        self.project_handler = ProjectHandler(self, load_project='SampleProject')
+        self.project = Project(self)
 
     def update(self) -> None:
         """
@@ -45,7 +45,7 @@ class Engine:
         # Update time
         self.dt = self.clock.tick() / 1000
         self.time += self.dt
-        pg.display.set_caption(str(round(self.clock.get_fps())))
+        pg.display.set_caption(f"FPS: {round(self.clock.get_fps())} | Objects: {len(self.project.current_scene.object_handler.objects)}")
         # Pygame events
         self.events = pg.event.get()
         self.keys = pg.key.get_pressed()
@@ -60,7 +60,7 @@ class Engine:
                 # Updates the viewport
                 self.win_size = (event.w, event.h)
                 self.ctx.viewport = (0, 0, event.w, event.h)
-                self.project_handler.current_project.current_scene.use()
+                self.project.current_scene.use()
             if event.type == pg.KEYUP:
                 if event.key == pg.K_ESCAPE:
                     # Unlock mouse
@@ -78,7 +78,7 @@ class Engine:
                 pg.mouse.set_visible(False)
 
         # Update Project
-        self.project_handler.update()
+        self.project.update()
 
     def render(self) -> None:
         """
@@ -88,7 +88,7 @@ class Engine:
         # Clear the screen
         self.ctx.clear(color=(0.08, 0.16, 0.18))
         # Render project
-        self.project_handler.render()
+        self.project.render()
         # Flip display buffer
         pg.display.flip()
 
@@ -113,7 +113,7 @@ class Engine:
         """
         Collects all GL garbage in the project
         """
-        self.project_handler.release()
+        self.project.release()
 
 
 if __name__ == '__main__':
