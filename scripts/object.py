@@ -1,4 +1,4 @@
-from scripts.data_types import vec3
+from scripts.generic.data_types import vec3
 
 
 CHUNK_SIZE = 40
@@ -26,18 +26,37 @@ class Object:
         self.scale    = vec3(scale   , self.update_scale)  
 
     @property
+    def position(self): return self._position
+    @property
+    def scale(self): return self._scale
+    @property
+    def rotation(self): return self._rotation
+    @property
     def x(self): return self.position.x
     @property
     def y(self): return self.position.y
     @property
     def z(self): return self.position.z
 
+    @position.setter
+    def position(self, value):
+        self._position = value
+        self.update_position()
+    @scale.setter
+    def scale(self, value):
+        self._scale = value
+        self.update_scale()
+    @rotation.setter
+    def rotation(self, value):
+        self._rotation = value
+        self.update_rotation()
     @x.setter
     def x(self, value): self.position.x = value
     @y.setter
     def y(self, value): self.position.y = value
     @z.setter
     def z(self, value): self.position.z = value
+    
 
     def update_position(self):
         self.chunk = (self.x // CHUNK_SIZE, self.y // CHUNK_SIZE, self.z // CHUNK_SIZE)

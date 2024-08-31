@@ -89,8 +89,8 @@ class ObjectHandler:
 
         # If there are no verticies, delete the chunk
         if len(batch_data) == 0:
-            del self.batches[chunk_key]
-            del self.chunks[chunk_key]
+            if chunk_key in self.batches: del self.batches[chunk_key]
+            if chunk_key in self.chunks: del self.chunks[chunk_key]
             return
 
         # Release any existing vbo and vaos for the chunk
