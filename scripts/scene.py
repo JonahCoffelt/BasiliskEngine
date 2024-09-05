@@ -4,9 +4,12 @@ from scripts.camera import Camera
 from scripts.object_handler import ObjectHandler
 from scripts.collisions.collider_handler import ColliderHandler
 from scripts.physics.physics_body_handler import PhysicsBodyHandler
-from scripts.collection_handler import *
+from scripts.collections.collection_handler import *
+from scripts.skeletons.skeleton_handler import SkeletonHandler
 import glm
 from random import uniform, randrange
+
+
 
 
 class Scene:
@@ -30,6 +33,7 @@ class Scene:
         self.collider_handler = ColliderHandler(self)
         self.physics_body_handler = PhysicsBodyHandler(self)
         self.collection_handler = CollectionHandler(self)
+        self.skeleton_handler = SkeletonHandler(self)
 
         spacing = 6
 
@@ -41,6 +45,19 @@ class Scene:
                     self.object_handler.add(models[randrange(0, 2)], "cow", (x * spacing, y * spacing, z * spacing), (0, 0, 0), (1, 1, 1))'''
 
         self.selected_object = self.object_handler.add("cow", "box", (4 * spacing, 4 * spacing, 4 * spacing), (0, 0, 0), (3, 3, 3))
+        
+        for x in range(2):
+            for y in range(6):
+                for z in range(2):
+                    self.collection_handler.add_single(
+                        position= (x * 4 -2, y * 4 + 5, z * 4 -2),
+                        rotation=(0, 0, 0),
+                        scale=(1, 1, 1),
+                        object=self.object_handler.add('cube'),
+                        physics_body=self.physics_body_handler.add_physics_body(mass=20),
+                        collider=self.collider_handler.add_collider(vbo='cube', static=False),
+                        name='cube'
+                    )
         
         # temp, adds base plate
         if True:
@@ -91,22 +108,9 @@ class Scene:
                         )
                 ], 
                 name='bowl')
+            
+        self.collider_handler.construct_bvh()
                 
-        for x in range(1):
-            for y in range(5):
-                for z in range(1):
-                    self.collection_handler.add_single(
-                        position= (x * 3 - 3, y * 2.5 - 2, z * 3 - 3),#(random.randint(-4, 4), random.randint(-1, 0), random.randint(-4, 4)),
-                        rotation=(0, 0, 0), #(glm.pi()/4, 0, glm.pi()/4.1),
-                        scale=(1, 1, 1),
-                        object=self.object_handler.add('cube'),
-                        physics_body=self.physics_body_handler.add_physics_body(mass=2), # , rotational_velocity=5, axis_of_rotation=(0, 1, 0), velocity=(random.randint(-1, 1), random.randint(-1, 1), random.randint(-1, 1))
-                        collider=self.collider_handler.add_collider(vbo='cube', static=False),
-                        name='cube'
-                    )
-                    
-        
-
     def use(self):
         """
         Updates project handlers to use this scene

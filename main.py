@@ -99,6 +99,7 @@ class Engine:
         
         # Run variable allows engine to be closed from outside
         self.run = True
+        self.clock.tick()
         # Main loop
         while self.run:
             self.update()

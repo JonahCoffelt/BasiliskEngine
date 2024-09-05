@@ -44,7 +44,6 @@ class ObjectHandler:
         """
         Batches all the chunks that have been updated since the last frame. 
         """ 
-        
         # Loop through the set of updated chunk keys and batch the chunk
         for chunk in self.updated_chunks:
             self.batch_chunk(chunk)
