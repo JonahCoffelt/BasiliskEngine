@@ -2,7 +2,7 @@ import glm
 from scripts.generic.math_functions import get_support_point, triple_product
 
 # main gjk handler
-def get_gjk_collision(points1:list, points2:list, position1:glm.vec3, position2:glm.vec3, iterations:int = 50) -> tuple:
+def get_gjk_collision(points1:list, points2:list, position1:glm.vec3, position2:glm.vec3, iterations:int = 20) -> tuple:
     """gets boolean and simplex from gjk"""
     # gets starting values
     direction_vector = position1 - position2

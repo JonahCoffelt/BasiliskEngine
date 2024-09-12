@@ -61,6 +61,7 @@ class ObjectHandler:
         """
         
         # Get the chunks from key
+        if chunk_key not in self.chunks: return
         chunk = self.chunks[chunk_key]
 
         # Empty list to contain all vertex data of objects in the chunk

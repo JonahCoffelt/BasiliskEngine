@@ -19,28 +19,42 @@ class Collection(SuperCollection):
         self.inverse_inertia = self.get_inverse_inertia()
     
     # initialization
-    def init_physics_body(self):
+    def init_physics_body(self): 
+        """
+        Gives this collection a physics body if it already has one and removes all bodies from children. 
+        """
+        temp_physics_body = self.physics_body # holds physics body in temp variable to save it after physics body destruction
         self.remove_physics_bodies()
+        self.physics_body = temp_physics_body
         if self.physics_body: self.physics_body.rotation = glm.quat(self.rotation)
         
-    def remove_physics_bodies(self) -> None:
+    def remove_physics_bodies(self):
+        """
+        Removes all the physics bodies from its children and itself.
+        """
         for collection in self.collections: collection.remove_physics_bodies()
+        self.physics_body = None
     
     # updating
-    def update(self, delta_time:float) -> None:
+    def update(self, delta_time:float): # TODO add super.after_update()
+        """
+        Updates the position of this collection based on the it's phsyics body and syncromizes all this children to its new data. 
+        """
         super().update()
+        
         # update variables from last movement
-        if self.update_position or self.update_scale or self.update_rotation:
-            self.model_matrix = get_model_matrix(self.position, self.scale, self.rotation)
+        # if self.update_position or self.update_scale or self.update_rotation:
+        self.model_matrix = get_model_matrix(self.position, self.scale, self.rotation)
+            
         # update physics body
         if self.physics_body:
             self.position       += self.physics_body.get_delta_position(delta_time)
+            self.physics_body.rotation = glm.quat(self.rotation) # TODO watch this line, it may cause gimble lock
             self.rotation        = self.physics_body.get_new_rotation(delta_time)
-            self.rotation_matrix = get_rotation_matrix(self.rotation)
-            self.sync_data() 
         
+        self.sync_data() 
             
-    def sync_data(self, position:glm.vec3=None, scale:glm.vec3=None, rotation:glm.vec3=None) -> None:
+    def sync_data(self, position:glm.vec3=None, scale:glm.vec3=None, rotation:glm.vec3=None):
         """
         Synchronizes the position, scale, and rotation of all child collections. Data may be inherited by a parent. 
         """
@@ -58,16 +72,25 @@ class Collection(SuperCollection):
     
     # getter methods 
     def get_colliders(self):
+        """
+        Returns all colliders from this collection's child collections. 
+        """
         colliders = []
         for collection in self.collections: colliders += collection.get_colliders()
         return colliders
     
     def get_objects(self):
+        """
+        Returns all objects from this collection's child collections. 
+        """
         objects = []
         for collection in self.collections: objects += collection.get_objects()
         return objects
     
     def get_objects_with_path(self):
+        """
+        Gets the objects and their names from this collection's children. 
+        """
         names   = []
         objects = []
         for collection in self.collections: 
@@ -76,10 +99,17 @@ class Collection(SuperCollection):
             objects     += object
         return [f'{self.name}>{name}' for name in names], objects
     
-    def add_collection(self, collection): self.collections.append(collection)
+    def add_collection(self, collection): 
+        """
+        Adds a collection to this collection's list. 
+        """
+        self.collections.append(collection)
     
     # physics function
     def define_inverse_inertia(self) -> glm.mat3x3:
+        """
+        Gets the inverse inertia by combining the inertias of all child collections. 
+        """
         inertia_data = [(collection.get_inverse_inertia(), collection.position) for collection in self.collections]
         inverse_inertia = glm.mat3x3(0.0)
         # sum child inertia tensors
@@ -89,7 +119,7 @@ class Collection(SuperCollection):
             child_displacement = inertia[1]
             inverse_inertia   += child_inertia + (glm.dot(child_displacement, child_displacement) * glm.mat3x3() - glm.outerProduct(child_displacement, child_displacement))
         # return the inverse of the new inertia
-        return glm.inverse(inverse_inertia) #TODO add parallel axis theorm for mesh center
+        return glm.inverse(inverse_inertia / len(inertia_data)) #TODO add parallel axis theorm for mesh center
     
     def get_inverse_inertia(self):
         """
@@ -103,3 +133,12 @@ class Collection(SuperCollection):
             
         # return transformed inertia tensor
         return self.inverse_inertia
+    
+    def update_parents(self, parent=None):
+        """
+        Updates the parents of the children collections. If no parent is passed then we assume this is the parent. 
+        """
+        if parent:
+            for collection in self.collections: collection.update_parents(parent)
+        else: 
+            for collection in self.collections: collection.update_parents(self)

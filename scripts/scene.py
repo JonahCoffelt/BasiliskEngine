@@ -9,9 +9,6 @@ from scripts.skeletons.skeleton_handler import SkeletonHandler
 import glm
 from random import uniform, randrange
 
-
-
-
 class Scene:
     def __init__(self, engine, project) -> None:
         """
@@ -46,20 +43,19 @@ class Scene:
 
         self.selected_object = self.object_handler.add("cow", "box", (4 * spacing, 4 * spacing, 4 * spacing), (0, 0, 0), (3, 3, 3))
         
-        for x in range(2):
-            for y in range(6):
-                for z in range(2):
+        for x in range(4):
+            for y in range(3):
+                for z in range(4):
                     self.collection_handler.add_single(
-                        position= (x * 4 -2, y * 4 + 5, z * 4 -2),
-                        rotation=(0, 0, 0),
+                        position=glm.vec3(x * 3, y * 3, z * 3), 
                         scale=(1, 1, 1),
-                        object=self.object_handler.add('cube'),
-                        physics_body=self.physics_body_handler.add_physics_body(mass=20),
-                        collider=self.collider_handler.add_collider(vbo='cube', static=False),
-                        name='cube'
-                    )
+                        rotation=(0.5, 0, 0),
+                        object=self.object_handler.add('cube'), 
+                        physics_body=self.physics_body_handler.add(mass=20),
+                        collider=self.collider_handler.add(vbo='cube', static=False),
+                        name='bowl side'
+                    ),
         
-        # temp, adds base plate
         if True:
             self.collection_handler.add_collection(
                 position=(0, 0, 0),
@@ -70,8 +66,8 @@ class Scene:
                         position=glm.vec3(0, -4, 0), 
                         scale=(10, 1, 10),
                         rotation=(0, 0, 0),
-                        object=self.object_handler.add('cube', 'cow'), 
-                        collider=self.collider_handler.add_collider(vbo='cube'),
+                        object=self.object_handler.add('cube', 'metal'), 
+                        collider=self.collider_handler.add(vbo='cube'),
                         name='bowl side'
                         ),
                     self.collection_handler.create_single(
@@ -79,7 +75,7 @@ class Scene:
                         scale=(10, 1, 5), 
                         rotation=(glm.pi()/9, 0, 0),
                         object=self.object_handler.add('cube', 'metal'), 
-                        collider=self.collider_handler.add_collider(),
+                        collider=self.collider_handler.add(vbo='cube'),
                         name='bowl side'
                         ),
                     self.collection_handler.create_single(
@@ -87,7 +83,7 @@ class Scene:
                         scale=(10, 1, 5),
                         rotation=(-glm.pi()/9, 0, 0),
                         object=self.object_handler.add('cube', 'metal'), 
-                        collider=self.collider_handler.add_collider(vbo='cube'),
+                        collider=self.collider_handler.add(vbo='cube'),
                         name='bowl side'
                         ),
                     self.collection_handler.create_single(
@@ -95,7 +91,7 @@ class Scene:
                         scale=(5, 1, 10), 
                         rotation=(0, 0, -glm.pi()/9),
                         object=self.object_handler.add('cube', 'metal'), 
-                        collider=self.collider_handler.add_collider(vbo='cube'),
+                        collider=self.collider_handler.add(vbo='cube'),
                         name='bowl side'
                         ),
                     self.collection_handler.create_single(
@@ -103,12 +99,110 @@ class Scene:
                         scale=(5, 1, 10), 
                         rotation=(0, 0, glm.pi()/9),
                         object=self.object_handler.add('cube', 'metal'), 
-                        collider=self.collider_handler.add_collider(vbo='cube'),
+                        collider=self.collider_handler.add(vbo='cube'),
                         name='bowl side'
                         )
                 ], 
                 name='bowl')
-            
+        
+        self.skeleton_handler.add_skeleton(
+            collection=self.collection_handler.add_single(
+                position=(0, 6, 0),
+                scale=(1.5, 0.5, 0.5),
+                object=self.object_handler.add('cube', 'metal'),
+                collider=self.collider_handler.add(vbo='cube'),
+                physics_body=self.physics_body_handler.add(mass=10),
+                name='hip'
+            ),
+            joints=[
+                # chest
+                self.skeleton_handler.create_joint(
+                    joint_type='ball',
+                    parent_offset=(0, 3, 0),
+                    child_offset=(0, 0, 0),
+                    child_bone=self.skeleton_handler.create_skeleton(
+                        collection=self.collection_handler.add_single(
+                            position=(0, 8, 0),
+                            scale=(1.5, 0.5, 0.5),
+                            object=self.object_handler.add('cube', 'container'),
+                            collider=self.collider_handler.add(vbo='cube', static=False),
+                            physics_body=self.physics_body_handler.add(mass=10),
+                            name='chest'
+                        ),
+                        joints=[
+                            # head
+                            self.skeleton_handler.create_joint(
+                                joint_type='ball',
+                                parent_offset=(0, 2, 0),
+                                child_offset=(0, 0, 0),
+                                child_bone=self.skeleton_handler.create_skeleton(
+                                    collection=self.collection_handler.add_single(
+                                        position=(0, 10, 0),
+                                        scale=(0.75, 0.75, 0.75),
+                                        rotation=(glm.pi()/4, 0, glm.pi()/4),
+                                        object=self.object_handler.add('cube'),
+                                        collider=self.collider_handler.add(vbo='cube', static=False),
+                                        physics_body=self.physics_body_handler.add(mass=10, velocity=(-10, 0, 0)),
+                                        name='head'
+                                    ))),
+                            # right arm
+                            self.skeleton_handler.create_joint(
+                                joint_type='ball',
+                                parent_offset=(3, 0, 0),
+                                child_offset=(0, 0, 0),
+                                child_bone=self.skeleton_handler.create_skeleton(
+                                    collection=self.collection_handler.add_single(
+                                        position=(3, 8, 0),
+                                        scale=(1.5, 0.5, 0.5),
+                                        object=self.object_handler.add('cube'),
+                                        collider=self.collider_handler.add(vbo='cube', static=False),
+                                        physics_body=self.physics_body_handler.add(mass=10),
+                                        name='right arm'
+                                    ))),
+                            # left arm
+                            self.skeleton_handler.create_joint(
+                                joint_type='ball',
+                                parent_offset=(-3, 0, 0),
+                                child_offset=(0, 0, 0),
+                                child_bone=self.skeleton_handler.create_skeleton(
+                                    collection=self.collection_handler.add_single(
+                                        position=(-3, 8, 0),
+                                        scale=(1.5, 0.5, 0.5),
+                                        object=self.object_handler.add('cube'),
+                                        collider=self.collider_handler.add(vbo='cube', static=False),
+                                        physics_body=self.physics_body_handler.add(mass=10),
+                                        name='left arm'
+                                    )))])),
+                # right leg
+                self.skeleton_handler.create_joint(
+                    joint_type='ball',
+                    parent_offset=(1, -3, 0),
+                    child_offset=(0, 0, 0),
+                    
+                    child_bone=self.skeleton_handler.create_skeleton(
+                        collection=self.collection_handler.add_single(
+                        position=(1, 3, 0),
+                        scale=(0.5, 1.5, 0.5),
+                        object=self.object_handler.add('cube'),
+                        collider=self.collider_handler.add(vbo='cube', static=False),
+                        physics_body=self.physics_body_handler.add(mass=10),
+                        name='right leg'
+                        ))),
+                # left leg
+                self.skeleton_handler.create_joint(
+                    joint_type='ball',
+                    parent_offset=(-1, -3, 0),
+                    child_offset=(0, 0, 0),
+                    child_bone=self.skeleton_handler.create_skeleton(
+                        self.collection_handler.add_single(
+                            position=(-1, 3, 0),
+                            scale=(0.5, 1.5, 0.5),
+                            object=self.object_handler.add('cube'),
+                            collider=self.collider_handler.add(vbo='cube', static=False),
+                            physics_body=self.physics_body_handler.add(mass=10),
+                            name='left leg'
+                        )))]) 
+        
         self.collider_handler.construct_bvh()
                 
     def use(self):
@@ -155,7 +249,6 @@ class Scene:
 
         self.vao_handler.release()
         
-        
     def get_hovered(self):
         """
         gets the closest collection tree or object to the mouse. Returns none if nothing is close.
@@ -168,7 +261,7 @@ class Scene:
             for index, object in enumerate(objects):
                 if glm.dot(object.data[:3] - self.camera.position, self.camera.forward) <= 0: continue # moves on if object is behind screen
                 matrix = self.collider_handler.get_model_matrix(object.data)
-                for triangle in self.project.prefab_handler.prefabs[object.prefab].triangles:
+                for triangle in self.project.vbo_handler.vbos[object.vbo].triangles:
                      # Project vertices and check if they're in front of the camera
                     points = []
                     behind_camera = False

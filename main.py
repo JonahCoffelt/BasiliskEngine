@@ -78,7 +78,7 @@ class Engine:
                 pg.mouse.set_visible(False)
 
         # Update Project
-        self.project.update()
+        self.project.update(self.dt)
 
     def render(self) -> None:
         """
@@ -99,7 +99,7 @@ class Engine:
         
         # Run variable allows engine to be closed from outside
         self.run = True
-        self.clock.tick()
+        self.dt = self.clock.tick() / 1000
         # Main loop
         while self.run:
             self.update()
@@ -115,7 +115,6 @@ class Engine:
         Collects all GL garbage in the project
         """
         self.project.release()
-
 
 if __name__ == '__main__':
     # Creates an engine

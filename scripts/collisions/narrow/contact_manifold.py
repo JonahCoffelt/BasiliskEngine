@@ -7,7 +7,9 @@ from scripts.collisions.narrow.sutherland_hodgman import sutherland_hodgman
 
 # sutherland hodgman clipping algorithm
 def get_contact_manifold(contact_plane_point:glm.vec3, contact_plane_normal:glm.vec3, points1:list[glm.vec3], points2:list[glm.vec3], polytope, face) -> list[glm.vec3]:
-    """computes the contact manifold for a collision between two nearby polyhedra"""
+    """
+    computes the contact manifold for a collision between two nearby polyhedra
+    """
     # gets near points to be considered for clipping
     points1 = get_past_points(contact_plane_point, contact_plane_normal, points1)
     points2 = get_past_points(contact_plane_point, -contact_plane_normal, points2)
@@ -35,9 +37,9 @@ def get_contact_manifold(contact_plane_point:glm.vec3, contact_plane_normal:glm.
     is_line1, is_line2 = len(points1) == 2, len(points2) == 2
     if is_line1 and is_line2: manifold = line_line_intersect(points1, points2)
     else: 
-        if is_line1: manifold = line_poly_intersect(points1, points2)
+        if is_line1:   manifold = line_poly_intersect(points1, points2)
         elif is_line2: manifold = line_poly_intersect(points2, points1)
-        else: manifold = sutherland_hodgman(points1, points2)
+        else:          manifold = sutherland_hodgman(points1, points2)
         
     # fall back if manifold fails to develope
     if len(manifold) == 0: return []
@@ -48,23 +50,6 @@ def get_contact_manifold(contact_plane_point:glm.vec3, contact_plane_normal:glm.
 def get_past_points(contact_plane_point:glm.vec3, contact_plane_normal:glm.vec3, points:list[glm.vec3], epsilon:float = 1e-3) -> list[glm.vec3]:
     """returns the points on the wrong side of the contact plane"""
     return list(filter(lambda point: glm.dot(contact_plane_normal, point - contact_plane_point) > -epsilon, points))
-    
-# def get_near_points(contact_plane_point:glm.vec3, contact_plane_normal:glm.vec3, points:list[glm.vec3], epsilon:float = 1e-3) -> list[glm.vec3]:
-#     """get the points closest to the contact plane"""
-#     distances = {}
-#     closest_distance = 1e10
-#     for point in points: 
-#         distance = distance_to_plane(contact_plane_point, contact_plane_normal, point)
-#         # determine if points need to be considered for closest points
-#         if distance < closest_distance + epsilon: 
-#             if distance not in distances: distances[distance] = []
-#             distances[distance].append(point)
-#             if distance < closest_distance: closest_distance = distance
-#     # adds points to closest point array of they are within error
-#     near_points = []
-#     for distance, possible_points in distances.items():
-#         if distance <= closest_distance + epsilon: near_points += possible_points
-#     return near_points
     
 def distance_to_plane(contact_plane_point:glm.vec3, contact_plane_normal:glm.vec3, point:glm.vec3) -> float:
     """gets the smallest distance a point is from a plane"""
@@ -86,9 +71,7 @@ def points_to_2d(contact_plane_point:glm.vec3, contact_plane_normal:glm.vec3, po
     
 def points_to_3d(u:glm.vec3, v:glm.vec3, contact_plane_point:glm.vec3, points:list[glm.vec2]) -> list[glm.vec3]:
     """converts a list of points on a plane to their 3d representation"""
-    for i, point in enumerate(points):
-        points[i] = contact_plane_point + point.x * u + point.y * v
-    return points
+    return [contact_plane_point + point.x * u + point.y * v for point in points]
     
 # vector math
 def get_noncolinear_vector(vector:glm.vec3) -> glm.vec3:

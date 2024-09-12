@@ -28,7 +28,7 @@ class SuperCollection():
         """
         return all(abs(v1 - v2) <= epsilon for v1, v2 in zip(vec1, vec2))
     
-    def update(self) -> None:
+    def update(self):
         """
         Updates previous data if data exceeds error value
         """
@@ -51,7 +51,7 @@ class SuperCollection():
             self.update_inertia  = False
         else: self.prev_rotation = glm.vec3(self.rotation)
         
-    def after_update(self) -> None:
+    def after_update(self):
         """
         Called after all updates have been completed for singles and collections
         """
@@ -88,3 +88,4 @@ class SuperCollection():
         self.update_rotation        = True
         self.update_rotation_matrix = True
         self._rotation              = value
+        

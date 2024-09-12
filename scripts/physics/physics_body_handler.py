@@ -6,7 +6,10 @@ class PhysicsBodyHandler():
         self.physics_handler = self.scene.project.physics_handler
         self.physics_bodies  = physics_bodies if physics_bodies else []
         
-    def add_physics_body(self, mass:float = 1, velocity:glm.vec3 = None, rotational_velocity:int = 0, axis_of_rotation:glm.vec3 = None):
+    def add(self, mass:float = 1, velocity:glm.vec3 = None, rotational_velocity:int = 0, axis_of_rotation:glm.vec3 = None):
+        """
+        Adds a physics body to the physics handler and returns it. 
+        """
         # add physics body and return
         self.physics_bodies.append(PhysicsBody(self, mass, velocity, rotational_velocity, axis_of_rotation))
         return self.physics_bodies[-1]
@@ -39,6 +42,9 @@ class PhysicsBody(PointPhysicsBody):
         """
         returns the new rotation of the object after time
         """
+        # quit early if rotation is super small
+        if abs(self.rotational_velocity) < 1e-5: return glm.eulerAngles(self.rotation)
+        
         # get change in angle
         theta = -self.rotational_velocity * delta_time # negative for ccw which is positive
         

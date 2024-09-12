@@ -39,10 +39,16 @@ class AABB():
         return 2 * (diff.x * diff.y + diff.y * diff.z + diff.z * diff.x)
         
     def get_delta_test_surface(self, test_volume) -> float:
+        """
+        Gets the difference between the given test volume and its own surface area. 
+        """
         return self.get_test_surface(test_volume) - self.surface_area
 
 
     def find_sibling(self, collider, c_best, inherited):
+        """
+        Gets the best sibling for the given collider.
+        """
         # compute lowest cost
         c = self.get_test_surface(collider) + inherited
         if c < c_best: c_best = c
@@ -65,6 +71,9 @@ class AABB():
         return c_best, best_aabb
     
     def get_collided(self, collider) -> list:
+        """
+        Returns every possible collider that may have collided with the given collider. 
+        """
         # check for overlap with self
         if not get_aabb_collision(self.top_right, self.bottom_left, collider.top_right, collider.bottom_left): return []
         # if a success was detected, run aabb on children

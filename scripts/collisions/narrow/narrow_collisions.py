@@ -79,7 +79,4 @@ def calculate_contact_point(points1, points2, polytope, face, normal):
 
 def get_furthest_point(points:list, direction_vector:glm.vec3) -> glm.vec3: # may need to be normalized
     """finds furthest point in given direction"""
-    best_point, best_dot = glm.vec3(0, 0, 0), -1e6
-    for point in points: 
-        if (dot := glm.dot(point, direction_vector)) > best_dot: best_point, best_dot = point, dot
-    return best_point
+    return max(points, key=lambda point: glm.dot(point, direction_vector))

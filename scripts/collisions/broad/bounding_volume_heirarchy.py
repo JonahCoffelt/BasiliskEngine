@@ -54,12 +54,17 @@ class BoundingVolumeHeirarchy():
             self.rotate(aabb)
             
             aabb = aabb.parent
+            
+    def get_collided(self, collider) -> list:
+        """
+        Gets the possible narrow collisions from the root aabb
+        """
+        return self.root.get_collided(collider)
         
+    # TODO witawy aw dis
     def remove_collider(self, collider):
         ...
         
     def rotate(self, aabb):
         ...
         
-    def get_collided(self, collider) -> list:
-        return self.root.get_collided(collider)

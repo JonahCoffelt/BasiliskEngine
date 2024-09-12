@@ -51,5 +51,5 @@ def get_rotation_matrix(rotation) -> glm.mat3x3:
     )
 
 # collision formulas  
-def get_aabb_collision(top_right1, bottom_left1, top_right2, bottom_left2) -> bool:
-    return all(bottom_left1[i] <= top_right2[i] and top_right1[i] >= bottom_left2[i] for i in range(3))
+def get_aabb_collision(top_right1, bottom_left1, top_right2, bottom_left2, epsilon:float=1) -> bool:
+    return all(bottom_left1[i] <= top_right2[i] + epsilon and epsilon + top_right1[i] >= bottom_left2[i] for i in range(3))

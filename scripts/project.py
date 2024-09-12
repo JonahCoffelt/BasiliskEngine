@@ -24,11 +24,11 @@ class Project:
         # Use scene
         self.current_scene.use()
 
-    def update(self) -> None:
+    def update(self, delta_time) -> None:
         """
         Updates the current scene        
         """
-        self.physics_handler.update(self.engine.dt)
+        self.physics_handler.update(delta_time)
         self.current_scene.update()
 
     def render(self) -> None:

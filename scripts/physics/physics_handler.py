@@ -1,4 +1,5 @@
 import glm
+import time
 
 class PhysicsHandler:
     """controls the movement of physics bodies"""
@@ -10,11 +11,16 @@ class PhysicsHandler:
     def update(self, delta_time:float) -> None:
         """moves physics bodies and collections"""
         # update physics bodies 
-        if self.scene is None: return # when project has no scene
+        if self.scene is None or delta_time > 0.05: return # when project has no scene
         # accelerate all physics bodies by external accelerations
-        self.scene.collection_handler.update(delta_time)
-        self.scene.collider_handler.resolve_collisions()
-        self.scene.skeleton_handler.update(delta_time)
+        time1 = time.time()
+        self.scene.collection_handler.update(delta_time) # movement
+        time2 = time.time()
+        self.scene.skeleton_handler.update(delta_time)   # skeleton restrictions
+        time3 = time.time()
+        self.scene.collider_handler.resolve_collisions() # collisions
+        time4 = time.time()
+        print('collections:', time2 - time1, '\nskeletons:', time3 - time2, '\ncolliders:', time4 - time3)
         
     def get_constant_rk4(self, delta_time, velocity) -> tuple[glm.vec3, glm.vec3]:
         """Gives the delta position and velcoity of an object depending on the physics engine accelerations"""
