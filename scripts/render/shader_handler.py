@@ -13,8 +13,53 @@ class ShaderHandler:
         self.uniform_attribs = {}
 
         self.programs['default'] = self.load_program('default')
+        self.programs['frame'] = self.load_program('frame')
         self.programs['batch'] = self.load_program('batch')
+        self.programs['sky'] = self.load_program('sky')
 
+    def load_program(self, name: str='default') -> mgl.Program:
+        """
+        Creates a shader program from a file name.
+        Parses through shaders to identify uniforms and save for writting.
+        """
+
+        # Read the shaders
+        with open(f'shaders/{name}.vert') as file:
+            vertex_shader = file.read()
+        with open(f'shaders/{name}.frag') as file:
+            fragment_shader = file.read()
+            
+        # Create blank list for uniforms
+        self.uniform_attribs[name] = []
+        # Create a list of all lines in both shaders
+        lines = f'{vertex_shader}\n{fragment_shader}'.split('\n')
+        # Parse through shader to find uniform variables
+        for line in lines:
+            tokens = line.strip().split(' ')
+            if tokens[0] == 'uniform' and len(tokens) > 2:
+                self.uniform_attribs[name].append(tokens[2][:-1])
+
+        # Create a program with shaders
+        program = self.ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
+        return program
+    
+    def load_transform(self, name: str='default') -> mgl.Program:
+        """
+        Creates a shader program from a file name.
+        Parses through shaders to identify uniforms and save for writting
+        """
+
+        # Read the shader (No frag)
+        with open(f'shaders/transforms/{name}.vert') as file:
+            vertex_shader = file.read()
+            
+        # Create blank list for uniforms (None will be used)
+        self.uniform_attribs[name] = []
+
+        # Create a program with shaders
+        program = self.ctx.program(vertex_shader=vertex_shader, varyings=['position'],)
+        return program
+    
     def load_program(self, name: str='default') -> mgl.Program:
         """
         Creates a shader program from a file name.
@@ -61,7 +106,7 @@ class ShaderHandler:
             'm_model' : glm.mat4(),
             'textureID' : glm.vec2(0, 0),
             'cameraPosition' : self.camera.position,
-            'winSize' : glm.vec2(*self.project.engine.win_size)
+            'winSize' : glm.vec2(*self.project.engine.win_size),
         }
 
     def write_all_uniforms(self) -> None:

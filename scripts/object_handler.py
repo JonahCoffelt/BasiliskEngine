@@ -13,7 +13,7 @@ class ObjectHandler:
         self.program =     scene.vao_handler.shader_handler.programs['batch']
         self.texture_ids = scene.project.texture_handler.texture_ids
 
-        self.view_distance = 4  # In chunks
+        self.view_distance = 5  # In chunks
 
         self.objects = []  # List containig all objects
         self.chunks  = {}  # Contain lists with objects positioned in a bounding box in space (Spatial partitioning)
@@ -44,6 +44,7 @@ class ObjectHandler:
         """
         Batches all the chunks that have been updated since the last frame. 
         """ 
+        
         # Loop through the set of updated chunk keys and batch the chunk
         for chunk in self.updated_chunks:
             self.batch_chunk(chunk)
@@ -61,7 +62,6 @@ class ObjectHandler:
         """
         
         # Get the chunks from key
-        if chunk_key not in self.chunks: return
         chunk = self.chunks[chunk_key]
 
         # Empty list to contain all vertex data of objects in the chunk
@@ -71,10 +71,10 @@ class ObjectHandler:
         for object in chunk:
             # Get all needed information from the vbo and the object
             vertex_data = np.copy(self.vbos[object.vbo].vertex_data)
-            model_data = np.array([*object.position, *object.rotation, *object.scale, *object.texture])
+            model_data = np.array([*object.position, *object.rotation, *object.scale, object.material])
 
             # Create an empty array to hold the object's mesh data
-            object_data = np.zeros(shape=(vertex_data.shape[0], 19), dtype='f4')
+            object_data = np.zeros(shape=(vertex_data.shape[0], 18), dtype='f4')
 
             # Add the vbo and object information to the mesh
             object_data[:,:8] = vertex_data
@@ -89,8 +89,8 @@ class ObjectHandler:
 
         # If there are no verticies, delete the chunk
         if len(batch_data) == 0:
-            if chunk_key in self.batches: del self.batches[chunk_key]
-            if chunk_key in self.chunks: del self.chunks[chunk_key]
+            del self.batches[chunk_key]
+            del self.chunks[chunk_key]
             return
 
         # Release any existing vbo and vaos for the chunk
@@ -100,7 +100,7 @@ class ObjectHandler:
 
         # Create the vbo and the vao from mesh data
         vbo = self.ctx.buffer(batch_data)
-        vao = self.ctx.vertex_array(self.program, [(vbo, '3f 2f 3f 3f 3f 3f 2f', *['in_position', 'in_uv', 'in_normal', 'obj_position', 'obj_rotation', 'obj_scale', 'obj_texture'])], skip_errors=True)
+        vao = self.ctx.vertex_array(self.program, [(vbo, '3f 2f 3f 3f 3f 3f 1i', *['in_position', 'in_uv', 'in_normal', 'obj_position', 'obj_rotation', 'obj_scale', 'obj_material'])], skip_errors=True)
 
         # Store batched chunk mesh in the batches dict
         self.batches[chunk_key] = (vbo, vao)
@@ -132,7 +132,7 @@ class ObjectHandler:
 
         return (render_range_x, render_range_y, render_range_z)
 
-    def add(self, vbo: str="cube", texture: str="box", position: tuple=(0, 0, 0), rotation: tuple=(0, 0, 0), scale: tuple=(1, 1, 1)) -> Object:
+    def add(self, vbo: str="cube", material: str="base", position: tuple=(0, 0, 0), rotation: tuple=(0, 0, 0), scale: tuple=(1, 1, 1)) -> Object:
         """
         Add an object to the scene.
         Returns the object instance.
@@ -157,7 +157,7 @@ class ObjectHandler:
             self.chunks[chunk] = []
 
         # Create a new object from the given parameters
-        new_object = Object(self, vbo, self.texture_ids[texture], position, rotation, scale)
+        new_object = Object(self, vbo, material, position, rotation, scale)
 
         # Add the object to the objects list and to its correct chunk list
         self.objects.append(new_object)

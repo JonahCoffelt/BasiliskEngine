@@ -2,7 +2,7 @@ import moderngl as mgl
 import numpy as np
 
 
-class TransformHandler:
+class TransformHander:
     def __init__(self, scene) -> None:
         # Reference to the eviornment
         self.scene = scene
@@ -57,7 +57,7 @@ class TransformHandler:
 
 
 class Transform:
-    def __init__(self, ctx, program, format, attribs, output_size=3, buffer_reserve=1000000) -> None:
+    def __init__(self, ctx, program, format, attribs, output_size=3, buffer_reserve=100000) -> None:
         """
         Container for all the data needed with a loaded transformation shader
         """

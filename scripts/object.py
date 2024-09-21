@@ -5,32 +5,40 @@ CHUNK_SIZE = 40
 
 
 class Object:
-    def __init__(self, handler, vbo, texture, position: tuple, rotation: tuple, scale: tuple) -> None:
+    def __init__(self, handler, vbo, material, position: tuple, rotation: tuple, scale: tuple, name: str='') -> None:
         # Rendering specifications
-        self.handler = handler
-        self.vbo     = vbo
-        self.texture = texture
+        self.__handler = handler
+        self.vbo       = vbo
 
         # Chunk that the object is in
         self.chunk = (position[0] // CHUNK_SIZE, position[1] // CHUNK_SIZE, position[2] // CHUNK_SIZE)
         self.prev_chunk = self.chunk
         
+        self.material   = material
+        
         # Variables for detecting attribute changes
-        self.prev_position = [0, 0, 0]
-        self.prev_rotation = [0, 0, 0]
-        self.prev_scale    = [1, 1, 1]
+        self.__prev_position = (-100, -100, -100)
+        self.__prev_rotation = (-100, -100, -100)
+        self.__prev_scale    = (-100, -100, -100)
 
         # Model matrix vectors
         self.position = vec3(position, self.update_position)
         self.rotation = vec3(rotation, self.update_rotation)
         self.scale    = vec3(scale   , self.update_scale)  
 
+        # Editor attribute
+        if name: self.name = name
+        else:    self.name = vbo
+
+    # Sets each of the editable object attributes as properties
     @property
     def position(self): return self._position
     @property
+    def rotation(self): return self._rotation
+    @property
     def scale(self): return self._scale
     @property
-    def rotation(self): return self._rotation
+    def material(self): return self._material
     @property
     def x(self): return self.position.x
     @property
@@ -38,57 +46,82 @@ class Object:
     @property
     def z(self): return self.position.z
 
+    # Defines setters at the attribute level
     @position.setter
     def position(self, value):
         self._position = value
-        self.update_position()
-    @scale.setter
-    def scale(self, value):
-        self._scale = value
-        self.update_scale()
     @rotation.setter
     def rotation(self, value):
         self._rotation = value
-        self.update_rotation()
+    @scale.setter
+    def scale(self, value):
+        self._scale = value
+    @material.setter
+    def material(self, value):
+        self._material = self.__handler.scene.material_handler.material_ids[value]
+        self.__handler.updated_chunks.add(self.chunk)
     @x.setter
     def x(self, value): self.position.x = value
     @y.setter
     def y(self, value): self.position.y = value
     @z.setter
     def z(self, value): self.position.z = value
-    
 
     def update_position(self):
+        """
+        Checks if the object has moved enough to update the chunk mesh
+        """
+        
+        print('update pos')
+            
         self.chunk = (self.x // CHUNK_SIZE, self.y // CHUNK_SIZE, self.z // CHUNK_SIZE)
 
-        if abs(self.prev_position[0] - self.position[0]) < 0.001 and abs(self.prev_position[1] - self.position[1]) < 0.001 and abs(self.prev_position[2] - self.position[2]) < 0.001: return False   
+        if abs(self.__prev_position[0] - self.position[0]) < 0.001 and abs(self.__prev_position[1] - self.position[1]) < 0.001 and abs(self.__prev_position[2] - self.position[2]) < 0.001: return False   
+
+        print('did not fail update')
 
         if self.prev_chunk != self.chunk:
-            if self.chunk not in self.handler.chunks:
-                self.handler.chunks[self.chunk] = []
+            if self.chunk not in self.__handler.chunks:
+                self.__handler.chunks[self.chunk] = []
             
-            self.handler.chunks[self.chunk].append(self)
-            self.handler.chunks[self.prev_chunk].remove(self)
+            self.__handler.chunks[self.chunk].append(self)
+            self.__handler.chunks[self.prev_chunk].remove(self)
 
-        self.handler.updated_chunks.add(self.prev_chunk)
-        self.handler.updated_chunks.add(self.chunk)
+        self.__handler.updated_chunks.add(self.prev_chunk)
+        self.__handler.updated_chunks.add(self.chunk)
 
         self.prev_chunk = self.chunk
-        self.prev_position = self.position[:]
+        self.__prev_position = tuple(self.position[:])
 
     def update_scale(self):
-        if abs(self.prev_scale[0] - self.scale.x) < 0.001 and abs(self.prev_scale[1] - self.scale.y) < 0.001 and abs(self.prev_scale[2] - self.scale.z) < 0.001: return False  
-        
-        self.handler.updated_chunks.add(self.chunk)
+        """
+        Checks if the object has been scaled enough to update the chunk mesh
+        """
 
-        self.prev_scale = self.scale[:]
+        print('update scale')
+
+        if abs(self.__prev_scale[0] - self.scale.x) < 0.001 and abs(self.__prev_scale[1] - self.scale.y) < 0.001 and abs(self.__prev_scale[2] - self.scale.z) < 0.001: return False  
+        
+        print('did not fail update')
+
+        self.__handler.updated_chunks.add(self.chunk)
+
+        self.__prev_scale = tuple(self.scale[:])
 
     def update_rotation(self):
-        if abs(self.prev_rotation[0] - self.rotation.x) < 0.001 and abs(self.prev_rotation[1] - self.rotation.y) < 0.001 and abs(self.prev_rotation[2] - self.rotation.z) < 0.001: return False  
-        
-        self.handler.updated_chunks.add(self.chunk)
+        """
+        Checks if the object has been rotated enough to update the chunk mesh
+        """
 
-        self.prev_rotation = self.rotation[:]
+        print('update rotation')
+
+        if abs(self.__prev_rotation[0] - self.rotation.x) < 0.001 and abs(self.__prev_rotation[1] - self.rotation.y) < 0.001 and abs(self.__prev_rotation[2] - self.rotation.z) < 0.001: return False  
+        
+        print('did not fail update')
+
+        self.__handler.updated_chunks.add(self.chunk)
+
+        self.__prev_rotation = tuple(self.rotation[:])
 
     def __repr__(self) -> str:
         return f'<Object: {self.position[0]},{self.position[1]},{self.position[2]}>'

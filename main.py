@@ -4,6 +4,7 @@ import moderngl as mgl
 from scripts.project import Project
 import cudart
 
+
 class Engine:
     """
     Instance of python engine. Stores the window, context, and projects
@@ -78,7 +79,7 @@ class Engine:
                 pg.mouse.set_visible(False)
 
         # Update Project
-        self.project.update(self.dt)
+        self.project.update()
 
     def render(self) -> None:
         """
@@ -86,7 +87,8 @@ class Engine:
         """
 
         # Clear the screen
-        self.ctx.clear(color=(0.08, 0.16, 0.18))
+        # self.ctx.clear(color=(0.08, 0.16, 0.18))
+        self.ctx.clear()
         # Render project
         self.project.render()
         # Flip display buffer
@@ -99,7 +101,6 @@ class Engine:
         
         # Run variable allows engine to be closed from outside
         self.run = True
-        self.dt = self.clock.tick() / 1000
         # Main loop
         while self.run:
             self.update()
@@ -115,6 +116,7 @@ class Engine:
         Collects all GL garbage in the project
         """
         self.project.release()
+
 
 if __name__ == '__main__':
     # Creates an engine

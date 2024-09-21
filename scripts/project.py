@@ -1,7 +1,6 @@
 from scripts.scene import Scene
 from scripts.render.vao_handler import VAOHandler
 from scripts.render.texture_handler import TextureHandler
-from scripts.physics.physics_handler import PhysicsHandler
 
 class Project:
     """
@@ -11,8 +10,6 @@ class Project:
         # Stores the engine
         self.engine = engine
         self.ctx = engine.ctx
-        # Creates physics engine
-        self.physics_handler = PhysicsHandler(None)
         # Creates vao handler to be used by scenes
         self.vao_handler = VAOHandler(self)
         # Creates a texture handler
@@ -20,23 +17,21 @@ class Project:
         # Creates scenes
         self.scenes = {0 : Scene(self.engine, self)}
         self.current_scene = self.scenes[0]
-        self.physics_handler.scene = self.current_scene
-        # Use scene
         self.current_scene.use()
 
-    def update(self, delta_time) -> None:
+    def update(self, camera=True) -> None:
         """
         Updates the current scene        
         """
-        self.physics_handler.update(delta_time)
-        self.current_scene.update()
 
-    def render(self) -> None:
+        self.current_scene.update(camera)
+
+    def render(self, display=True) -> None:
         """
         Renders the current scene        
         """
 
-        self.current_scene.render()
+        self.current_scene.render(display)
 
     def set_scene(self, scene: str) -> None:
         """
@@ -45,7 +40,6 @@ class Project:
 
         self.scenes[scene].use()
         self.current_scene = self.scenes[scene]
-        self.physics_handler.scene = self.current_scene
 
     def release(self) -> None:
         """

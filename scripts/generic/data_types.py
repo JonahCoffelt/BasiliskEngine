@@ -1,4 +1,8 @@
 class vec3(list):
+    """
+    Subclass of a list that has x, y, z attributes and an optional update function on item setting. 
+    """
+    
     def __init__(self, iterable, update_func=None):
         self.update_func = update_func
         super().__init__(item for item in iterable)
