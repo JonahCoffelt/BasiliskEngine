@@ -2,8 +2,8 @@
 
 layout (location = 0) out vec4 frag_color;
 
-uniform vec3 fogColor;
-uniform vec3 planeColor;
+uniform vec4 fogColor;
+uniform vec4 planeColor;
 
 in vec3 v_viewpos;
 

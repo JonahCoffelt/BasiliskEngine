@@ -42,9 +42,8 @@ struct PointLight{
 };
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec3 color;
+    float specular;
     float specularExponent;
     float alpha;
 
@@ -73,8 +72,8 @@ vec3 CalcDirLight(DirLight light, Material mtl, vec3 normal, vec3 viewDir, vec3 
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), mtl.specularExponent);
     // result
-    vec3 ambient  = light.ambient  * albedo * light.color * mtl.ambient;
-    vec3 diffuse  = light.diffuse  * diff * albedo * light.color * mtl.diffuse;
+    vec3 ambient  = light.ambient  * albedo * light.color * mtl.color;
+    vec3 diffuse  = light.diffuse  * diff * albedo * light.color * mtl.color;
     vec3 specular = light.specular * spec * albedo * light.color * mtl.specular;
     return (ambient + diffuse + specular);
 }
@@ -91,8 +90,8 @@ vec3 CalcPointLight(PointLight light, Material mtl, vec3 normal, vec3 fragPos, v
     float distance    = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
     // result
-    vec3 ambient  = light.ambient  * albedo * light.color * mtl.ambient;
-    vec3 diffuse  = light.diffuse  * diff * albedo * light.color * mtl.diffuse;
+    vec3 ambient  = light.ambient  * albedo * light.color * mtl.color;
+    vec3 diffuse  = light.diffuse  * diff * albedo * light.color * mtl.color;
     vec3 specular = light.specular * spec * albedo * light.color * mtl.specular;
     ambient  *= attenuation;
     diffuse  *= attenuation;
@@ -116,7 +115,7 @@ void main() {
         albedo = texture(textureArrays[int(round(textureID.x))].array, vec3(uv, round(textureID.y))).rgb;
     }
     else {
-        albedo = mtl.ambient;
+        albedo = mtl.color;
     }
 
     vec3 normalDirection = normal;
@@ -137,4 +136,6 @@ void main() {
     }
 
     fragColor = vec4(light_result, mtl.alpha);
+    //fragColor.rgb *= 0.0001;
+    //fragColor.rgb += viewDir;
 }
