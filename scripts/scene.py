@@ -1,7 +1,4 @@
-import pygame as pg
-import numpy as np
-import glm
-from PIL import Image
+import moderngl as mgl
 from scripts.camera import Camera
 from scripts.object_handler import ObjectHandler
 from scripts.transform_handler import TransformHander
@@ -35,16 +32,16 @@ class Scene:
         self.material_handler = MaterialHandler(self)
         self.light_handler = LightHandler(self)
 
-        spacing = 10
+        spacing = 5
         n = 10
 
-        models = ['cube', 'cow']
-        textures = ['box', 'container', 'metal', 'cow']
+        # models = ['cube', 'cow']
+        # textures = ['box', 'container', 'metal', 'cow']
 
-        for x in range(-n, n):
-           for y in range(-n, n):
-               for z in range(-n, n):
-                   self.object_handler.add(models[randrange(2)], "base", (x * spacing, y * spacing, z * spacing), (uniform(0, 6.3), uniform(0, 6.3), uniform(0, 6.3)), (4, 4, 4))
+        # for x in range(-n, n):
+        #    for y in range(-n, n):
+        #        for z in range(-n, n):
+        #            self.object_handler.add(models[randrange(2)], "base", (x * spacing, y * spacing, z * spacing), (uniform(0, 6.3), uniform(0, 6.3), uniform(0, 6.3)), (1, 1, 1))
 
         # self.selected_object = self.object_handler.add("cow", "box", position=(4, 4, 4))
 
@@ -79,7 +76,6 @@ class Scene:
 
         self.vao_handler.framebuffer.clear(color=(0.08, 0.16, 0.18, 1.0))
         self.vao_handler.framebuffer.use()
-        # self.ctx.screen.use()
         self.sky.render()
         self.object_handler.render()
 

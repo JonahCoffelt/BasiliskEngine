@@ -1,4 +1,5 @@
 import pygame as pg
+import glm
 
 
 class Inspector:
@@ -12,6 +13,7 @@ class Inspector:
 
         # Selection attributes
         self.scroll_value = 0
+        self.component_height = 0
 
         # Display attributes
         self.top_buffer = 50
@@ -37,33 +39,61 @@ class Inspector:
         # List of all currently rendered attribute boxes
         self.attribute_boxes = []
 
+        self.component_height = 0
+
         # Transform
         if obj:
-            start_x, start_y = 45, self.top_buffer
-            w, h = (self.dim[0] - start_x - 15) // 3, self.list_item_height
-            padding = 3
-            # Position
-            self.editor.font.render_text(self.surf, (padding, start_y + h * 0 + h/2), 'Pos', size=0)
-            self.attribute_boxes.append((obj.position.x, (start_x + w * 0 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_x'))
-            self.attribute_boxes.append((obj.position.y, (start_x + w * 1 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_y'))
-            self.attribute_boxes.append((obj.position.z, (start_x + w * 2 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_z'))
-            # Rotation
-            self.editor.font.render_text(self.surf, (padding, start_y + h * 1 + h/2), 'Rot', size=0)
-            self.attribute_boxes.append((obj.rotation.x, (start_x + w * 0 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_x'))
-            self.attribute_boxes.append((obj.rotation.y, (start_x + w * 1 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_y'))
-            self.attribute_boxes.append((obj.rotation.z, (start_x + w * 2 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_z'))
-            # Scale
-            self.editor.font.render_text(self.surf, (padding, start_y + h * 2 + h/2), 'Scale', size=0)
-            self.attribute_boxes.append((obj.scale.x   , (start_x + w * 0 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_x'   ))
-            self.attribute_boxes.append((obj.scale.y   , (start_x + w * 1 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_y'   ))
-            self.attribute_boxes.append((obj.scale.z   , (start_x + w * 2 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_z'   ))
+            self.render_transform_component(obj)
+        # Material
+        if obj:
+            self.render_material_component(obj)
 
+        # Render all attributes
         for box in self.attribute_boxes:
             self.render_attribute_box(*box)
 
-        # Drae the outline of the window
+        # Draw the outline of the window
         pg.draw.rect(self.surf, self.ui.outline, (0, 0, self.dim[0], self.dim[1]), 1)
         if 0 <= object_index < len(objects): self.editor.font.render_text(self.surf, (self.dim[0] // 2, self.top_buffer // 2), objects[object_index].name, color=self.editor.ui.text_color, size=1, center_width=True)
+
+    def render_transform_component(self, obj):
+        start_x, start_y = 45, self.top_buffer + self.component_height
+        w, h = (self.dim[0] - start_x - 15) // 3, self.list_item_height
+        padding = self.padding
+        # Position
+        self.editor.font.render_text(self.surf, (padding, start_y + h * 0 + h/2), 'Pos', size=0)
+        self.attribute_boxes.append((obj.position.x, (start_x + w * 0 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_x'))
+        self.attribute_boxes.append((obj.position.y, (start_x + w * 1 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_y'))
+        self.attribute_boxes.append((obj.position.z, (start_x + w * 2 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'position_z'))
+        # Rotation
+        self.editor.font.render_text(self.surf, (padding, start_y + h * 1 + h/2), 'Rot', size=0)
+        self.attribute_boxes.append((obj.rotation.x, (start_x + w * 0 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_x'))
+        self.attribute_boxes.append((obj.rotation.y, (start_x + w * 1 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_y'))
+        self.attribute_boxes.append((obj.rotation.z, (start_x + w * 2 + padding, start_y + h * 1 + padding, w - padding * 2, h - padding * 2), 'rotation_z'))
+        # Scale
+        self.editor.font.render_text(self.surf, (padding, start_y + h * 2 + h/2), 'Scale', size=0)
+        self.attribute_boxes.append((obj.scale.x   , (start_x + w * 0 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_x'   ))
+        self.attribute_boxes.append((obj.scale.y   , (start_x + w * 1 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_y'   ))
+        self.attribute_boxes.append((obj.scale.z   , (start_x + w * 2 + padding, start_y + h * 2 + padding, w - padding * 2, h - padding * 2), 'scale_z'   ))
+
+        self.component_height += h * 4
+
+    def render_material_component(self, obj):
+        start_x, start_y = 45, self.top_buffer + self.component_height
+        w, h = (self.dim[0] - start_x - 15) // 3, self.list_item_height
+        padding = self.padding
+
+        mtl = self.engine.project.current_scene.material_handler.get(obj.material)
+
+        # Color
+        self.editor.font.render_text(self.surf, (padding, start_y + h * 0 + h/2), 'Color', size=0)
+        self.attribute_boxes.append((mtl.r, (start_x + w * 0 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'mtl_r'))
+        self.attribute_boxes.append((mtl.g, (start_x + w * 1 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'mtl_g'))
+        self.attribute_boxes.append((mtl.b, (start_x + w * 2 + padding, start_y + h * 0 + padding, w - padding * 2, h - padding * 2), 'mtl_b'))
+        # Specular
+        self.editor.font.render_text(self.surf, (padding, start_y + h * 1 + h/2), 'Spec', size=0)
+        self.attribute_boxes.append((mtl.specular.value, (start_x + w * 0 + padding, start_y + h * 1 + padding, w * 1.5 - padding * 2, h - padding * 2), 'mtl_spec'))
+        self.attribute_boxes.append((mtl.specular_exponent.value, (start_x + w * 1.5 + padding, start_y + h * 1 + padding, w * 1.5 - padding * 2, h - padding * 2), 'mtl_exp'))
 
     def render_attribute_box(self, value, rect, attrib_name):
         # Check if the attribute in the box is being edited by the user
@@ -79,7 +109,9 @@ class Inspector:
     def apply_input_string(self):
         objects = self.engine.project.current_scene.object_handler.objects
         object_index = self.ui.hierarchy.selected_object_index
-        if 0 <= object_index < len(objects): obj = objects[object_index]
+        if 0 <= object_index < len(objects): 
+            obj = objects[object_index]
+            mtl = self.engine.project.current_scene.material_handler.get(obj.material)
         else: self.input.selected_text_attrib = None; return
 
         match self.input.selected_text_attrib:
@@ -118,6 +150,26 @@ class Inspector:
             case 'scale_z':
                 try:
                     obj.scale.z = float(self.input.input_string)
+                except ValueError: ...
+            case 'mtl_r':
+                try:
+                    mtl.r = float(self.input.input_string)
+                except ValueError: ...
+            case 'mtl_g':
+                try:
+                    mtl.g = float(self.input.input_string)
+                except ValueError: ...
+            case 'mtl_b':
+                try:
+                    mtl.b = float(self.input.input_string)
+                except ValueError: ...
+            case 'mtl_spec':
+                try:
+                    mtl.specular = float(self.input.input_string)
+                except ValueError: ...
+            case 'mtl_exp':
+                try:
+                    mtl.specular_exponent = float(self.input.input_string)
                 except ValueError: ...
             case _:
                 ...

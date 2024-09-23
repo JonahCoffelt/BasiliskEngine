@@ -40,9 +40,9 @@ class Sky:
         m_model_void = glm.scale(m_model_void, glm.vec3(200.0, 0.0, 200.0))
 
         # Day
-        fog_color  = glm.vec3(200 / 255, 227 / 255, 228 / 255)
-        sky_color  = glm.vec3(172 / 255, 209 / 255, 247 / 255)
-        void_color = glm.vec3(119 / 255, 127 / 255, 127 / 255)
+        fog_color  = glm.vec4(200 / 255, 227 / 255, 228 / 255, 1.0)
+        sky_color  = glm.vec4(172 / 255, 209 / 255, 247 / 255, 1.0)
+        void_color = glm.vec4(119 / 255, 127 / 255, 127 / 255, 1.0)
 
         self.ctx.clear(color=fog_color)
         self.programs['sky']['fogColor'].write(fog_color)
